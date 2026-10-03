@@ -21,6 +21,9 @@ if [ ! -f "sysroot/hyper_iso_boot" ]; then
     curl -L https://github.com/UltraOS/Hyper/releases/download/v0.12.0/hyper_iso_boot >> sysroot/hyper_iso_boot
 fi
 
+cd testkernel && ./build.sh && cd ..
+cp testkernelbin sysroot/kernel
+
 dd if=/dev/zero of=sysroot/efipartition.img count=50 bs=1M
 mkfs.fat sysroot/efipartition.img
 mcopy -i sysroot/efipartition.img BOOTX64.EFI ::.

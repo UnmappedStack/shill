@@ -5,6 +5,7 @@
  */
 
 #pragma once
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -24,9 +25,13 @@ typedef char UBCHAR;
 typedef unsigned char CHAR;
 typedef const char* CSTRING;
 typedef uintptr_t PTR;
-typedef void VOID;
+#define VOID void
 
 #define NULLPTR nullptr
 #define NORETURN __attribute((noreturn))
 #define CONST const
 #define STATIC static
+
+typedef bool BOOL;
+#define TRUE true
+#define FALSE false

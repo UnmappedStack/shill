@@ -15,4 +15,5 @@ typedef struct {
 
 typedef struct {
     PTR (*GetDirectMapOffset)(PTR, PTR);
+    PTR (*GetKernelImageStart)(PTR, PTR);
 } ProtocolInterface;

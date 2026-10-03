@@ -4,6 +4,7 @@
  * Licence 2.0. See LICENSE in the root of the repository for more information.
  */
 
+#include <ldkernel.h>
 #include <printf.h>
 #include <hyper.h>
 #include <types.h>
@@ -21,6 +22,7 @@ CSTRING StringifiedProtocols[] = {
 ProtocolInterface ProtocolInterfaces[] = {
     [BOOT_PROTOCOL_HYPER] = {
         HyperGetDirectMapOffset,
+        HyperGetKernelImageStart,
     },
 };
 
@@ -58,6 +60,9 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     WriteConsole("Read boot info:\n"
                  "  -> Direct map offset (HHDM): %p\n",
                  BootInfo.DirectMapOffset);
+
+    WriteConsole("Trying to load kernel image...\n");
+    LoadKernel(ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));
 
     HaltDevice();
 }
