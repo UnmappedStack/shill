@@ -1,0 +1,7 @@
+/shill
+/sysroot
+
+# specific to hyper
+/hyper_install
+/image.iso
+/BOOTX64.EFI
