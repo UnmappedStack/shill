@@ -25,3 +25,9 @@ VOID InitSerial(VOID);
  * Str: The ASCII C string to write
  */
 VOID WriteSerial(CSTRING Str);
+
+/* Writes a single character to the serial port
+ *
+ * C: the ASCII character to write
+ */
+VOID WriteSerialChar(CHAR C);

@@ -1,16 +1,16 @@
 // Yoinked from https://github.com/UltraOS/UltraProtocol/blob/master/ultra_protocol.h
 // for Shill to get Ultra protocol specific bootloader info. Has some modifications
-// to fit with the codestyle of the rest of Shill, all of which are below this comment
-// and before Ultra's SPDX comment.
+// to fit with the codestyle of the rest of Shill and to also expose stuff in src/hyper.c.
 
-typedef struct ultra_boot_context UltraBootContext;
+#pragma once
+
+#include <api.h>
+PTR HyperGetDirectMapOffset(PTR Context, PTR Magic);
 
 // Copyright (c) 2022-2023 UltraOS
 // SPDX-License-Identifier: MIT
 
-#pragma once
-
-#include <stdint.h>
+#include <types.h>
 
 #define ULTRA_ATTRIBUTE_INVALID          0
 #define ULTRA_ATTRIBUTE_PLATFORM_INFO    1
@@ -22,30 +22,30 @@ typedef struct ultra_boot_context UltraBootContext;
 #define ULTRA_ATTRIBUTE_APM_INFO         7
 #define ULTRA_ATTRIBUTE_UEFI_INFO        8
 
-struct ultra_attribute_header {
-    uint32_t type;
-    uint32_t size;
-};
+typedef struct {
+    U32 Type;
+    U32 Size;
+} UltraAttributeHeader;
 
 #define ULTRA_PLATFORM_INVALID 0
 #define ULTRA_PLATFORM_BIOS    1
 #define ULTRA_PLATFORM_UEFI    2
 
-struct ultra_platform_info_attribute {
-    struct ultra_attribute_header header;
-    uint32_t platform_type;
+typedef struct {
+    UltraAttributeHeader Header;
+    U32 PlatformType;
 
-    uint16_t loader_major;
-    uint16_t loader_minor;
-    char loader_name[32];
+    U16 LoaderMajor;
+    U16 LoaderMinor;
+    UBCHAR LoaderName[32];
 
-    uint64_t acpi_rsdp_address;
-    uint64_t higher_half_base;
-    uint8_t page_table_depth;
-    uint8_t reserved[7];
-    uint64_t dtb_address;
-    uint64_t smbios_address;
-};
+    U64 RSDPAddress;
+    U64 HigherHalfBase;
+    U8 PageableDepth;
+    U8 Reserved[7];
+    U64 DTBAddress;
+    U64 SMBiosAddress;
+} UltraPlatformInfoAttribute;
 
 #define ULTRA_PARTITION_TYPE_INVALID 0
 #define ULTRA_PARTITION_TYPE_RAW     1
@@ -54,51 +54,51 @@ struct ultra_platform_info_attribute {
 #define ULTRA_PARTITION_TYPE_PXE_V4  4
 #define ULTRA_PARTITION_TYPE_PXE_V6  5
 
-struct ultra_guid {
-    uint32_t data1;
-    uint16_t data2;
-    uint16_t data3;
-    uint8_t  data4[8];
-};
+typedef struct {
+    U32 Data1;
+    U16 Data2;
+    U16 Data3;
+    U8  Data4[8];
+} UltraGUID;
 
-struct ultra_ipv4_addr {
-    uint8_t addr[4];
-};
+typedef struct {
+    U8 Addr[4];
+} UltraIPV4Addr;
 
-struct ultra_ipv6_addr {
-    uint8_t addr[16];
-};
+typedef struct {
+    U8 Addr[16];
+} UltraIPV6Addr;
 
 #define ULTRA_PATH_MAX 256
 
-struct ultra_kernel_info_attribute {
-    struct ultra_attribute_header header;
+typedef struct {
+    UltraAttributeHeader Header;
 
-    uint64_t physical_base;
-    uint64_t virtual_base;
-    uint64_t size;
+    U64 PhysicalBase;
+    U64 VirtualBase;
+    U64 Size;
 
     // one of ULTRA_PARTITION_TYPE_*
-    uint64_t partition_type;
+    U64 PartitionType;
 
-    // only valid if partition_type == ULTRA_PARTITION_TYPE_GPT
-    struct ultra_guid disk_guid;
+    // only valid if partitionype == ULTRA_PARTITION_TYPE_GPT
+    UltraGUID DiskGUID;
 
     union {
-        // only valid if partition_type == ULTRA_PARTITION_TYPE_GPT
-        struct ultra_guid partition_guid;
-        // only valid if partition_type == ULTRA_PARTITION_TYPE_PXE_V4
-        struct ultra_ipv4_addr pxe_v4;
-        // only valid if partition_type == ULTRA_PARTITION_TYPE_PXE_V6
-        struct ultra_ipv6_addr pxe_v6;
+        // only valid if partitionype == ULTRA_PARTITION_TYPE_GPT
+        UltraGUID PartitionGUID;
+        // only valid if partitionype == ULTRA_PARTITION_TYPE_PXE_V4
+        UltraIPV4Addr PXEV4;
+        // only valid if partitionype == ULTRA_PARTITION_TYPE_PXE_V6
+        UltraIPV6Addr PXEV6;
     };
 
     // always valid
-    uint32_t disk_index;
-    uint32_t partition_index;
+    U32 DiskIndex;
+    U32 PartitionIndex;
 
-    char fs_path[ULTRA_PATH_MAX];
-};
+    UBCHAR FSPath[ULTRA_PATH_MAX];
+} UltraKernelInfoAttribute;
 
 #define ULTRA_MEMORY_TYPE_INVALID            0x00000000
 #define ULTRA_MEMORY_TYPE_FREE               0x00000001
@@ -110,46 +110,46 @@ struct ultra_kernel_info_attribute {
 #define ULTRA_MEMORY_TYPE_KERNEL_STACK       0xFFFF0003
 #define ULTRA_MEMORY_TYPE_KERNEL_BINARY      0xFFFF0004
 
-struct ultra_memory_map_entry {
-    uint64_t physical_address;
-    uint64_t size;
-    uint64_t type;
-};
-#define ULTRA_MEMORY_MAP_ENTRY_COUNT(header) ((((header).size) - sizeof(struct ultra_attribute_header)) / sizeof(struct ultra_memory_map_entry))
+typedef struct {
+    U64 PhysicalAddress;
+    U64 Size;
+    U64 Type;
+} UltraMemoryMapEntry;
+#define ULTRA_MEMORY_MAP_ENTRY_COUNT(Header) ((((Header).Size) - sizeof(UltraAttributeHeader)) / sizeof(UltraMemoryMapEntry))
 
-struct ultra_memory_map_attribute {
-    struct ultra_attribute_header header;
-    struct ultra_memory_map_entry entries[];
-};
+typedef struct {
+    UltraAttributeHeader Header;
+    UltraMemoryMapEntry Entries[];
+} UltraMemoryMapAttribute;
 
 #define ULTRA_MODULE_TYPE_INVALID 0
 #define ULTRA_MODULE_TYPE_FILE    1
 #define ULTRA_MODULE_TYPE_MEMORY  2
 
-struct ultra_module_info_attribute {
-    struct ultra_attribute_header header;
-    uint32_t reserved;
-    uint32_t type;
-    char name[64];
-    uint64_t address;
-    uint64_t size;
-    char description[];
-};
+typedef struct {
+    UltraAttributeHeader Header;
+    U32 Reserved;
+    U32 Type;
+    UBCHAR Name[64];
+    U64 Address;
+    U64 Size;
+    UBCHAR Description[];
+} UltraModuleInfoAttribute;
 
 /*
  * NOTE: The size of the description is impossible to derive from header.size
  *       due to alignment reason. Use str{n}len() or similar.
  */
-#define ULTRA_MODULE_HAS_DESCRIPTION(header) ((((header).size) - sizeof(struct ultra_module_info_attribute)) > 0)
+#define ULTRA_MODULE_HAS_DESCRIPTION(Header) ((((Header).Size) - sizeof(UltraModuleInfoAttributes)) > 0)
 
-struct ultra_command_line_attribute {
-    struct ultra_attribute_header header;
+typedef struct {
+    UltraAttributeHeader Header;
     /*
      * NOTE: The size of 'text' is impossible to derive from header.size
      *       due to alignment reason. Use str{n}len() or similar.
      */
-    char text[];
-};
+    UBCHAR Text[];
+} UltraCommandLineAttribute;
 
 #define ULTRA_FB_FORMAT_INVALID  0
 #define ULTRA_FB_FORMAT_RGB888   1
@@ -157,65 +157,65 @@ struct ultra_command_line_attribute {
 #define ULTRA_FB_FORMAT_RGBX8888 3
 #define ULTRA_FB_FORMAT_XRGB8888 4
 
-struct ultra_framebuffer {
-    uint32_t width;
-    uint32_t height;
-    uint32_t pitch;
-    uint16_t bpp;
-    uint16_t format;
-    uint64_t physical_address;
-};
+typedef struct {
+    U32 Width;
+    U32 Height;
+    U32 Pitch;
+    U16 BPP;
+    U16 Format;
+    U64 PhysicalAddress;
+} UltraFramebuffer;
 
-struct ultra_framebuffer_attribute {
-    struct ultra_attribute_header header;
-    struct ultra_framebuffer fb;
-};
+typedef struct {
+    UltraAttributeHeader Header;
+    UltraFramebuffer FB;
+} UltraFramebufferAttribute;
 
-struct ultra_apm_info {
-    uint16_t version;
-    uint16_t flags;
+typedef struct {
+    U16 Version;
+    U16 Flags;
 
-    uint16_t pm_code_segment;
-    uint16_t pm_code_segment_length;
-    uint32_t pm_offset;
+    U16 PMCodeSegment;
+    U16 PMCodeSegmentLength;
+    U32 PMOffset;
 
-    uint16_t rm_code_segment;
-    uint16_t rm_code_segment_length;
+    U16 RMCodeSegment;
+    U16 RMCodeSegmentLength;
 
-    uint16_t data_segment;
-    uint16_t data_segment_length;
-};
+    U16 DataSegment;
+    U16 DataSegmentLength;
+} UltraAPMInfo;
 
-struct ultra_apm_attribute {
-    struct ultra_attribute_header header;
-    struct ultra_apm_info info;
-};
+typedef struct {
+    UltraAttributeHeader Header;
+    UltraAPMInfo Info;
+} UltraAPMAttribute;
 
-struct ultra_uefi_info_attribute {
-    struct ultra_attribute_header header;
+typedef struct {
+    UltraAttributeHeader Header;
 
-    uint64_t system_table_address;
+    U64 SystemableAddress;
 
-    uint32_t descriptor_size;
-    uint32_t descriptor_version;
+    U32 DescriptorSize;
+    U32 DescriptorVersion;
 
     // Width of the UEFI firmware in bits, either 32 or 64
-    uint32_t firmware_width;
-    uint32_t reserved;
+    U32 FirmwareWidth;
+    U32 Reserved;
 
-    uint8_t memory_descriptors[];
-};
+    U8 MemoryDescriptors[];
+} UltraUEFIInfoAttribute;
 
-#define ULTRA_UEFI_INFO_MEM_DESC_COUNT(info) ((((info).header.size) - sizeof(struct ultra_uefi_info_attribute)) / (info).descriptor_size)
+#define ULTRA_UEFI_INFO_MEM_DESC_COUNT(Info) ((((Info).Header.Size) - sizeof(UltraUEFIInfoAttribute)) / (info).DescriptorSize)
 
-struct ultra_boot_context {
-    uint8_t protocol_major;
-    uint8_t protocol_minor;
-    uint16_t reserved;
+typedef struct {
+    U8 ProtocolMajor;
+    U8 ProtocolMinor;
+    U16 Reserved;
 
-    uint32_t attribute_count;
-    struct ultra_attribute_header attributes[];
-};
-#define ULTRA_NEXT_ATTRIBUTE(current) ((struct ultra_attribute_header*)(((uint8_t*)(current)) + (current)->size))
+    U32 AttributeCount;
+    UltraAttributeHeader Attributes[];
+} UltraBootContext;
+#define ULTRA_NEXT_ATTRIBUTE(Current) ((UltraAttributeHeader*)(((U8*)(Current)) + (Current)->Size))
 
 #define ULTRA_MAGIC 0x554c5442

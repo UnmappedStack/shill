@@ -19,9 +19,14 @@ typedef int16_t I16;
 typedef int32_t I32;
 typedef int64_t I64;
 
+// try to not use UBCHAR and just use CHAR... as the name implies, the signedness is UB 
+typedef char UBCHAR;
 typedef unsigned char CHAR;
 typedef const char* CSTRING;
 typedef uintptr_t PTR;
 typedef void VOID;
 
+#define NULLPTR nullptr
 #define NORETURN __attribute((noreturn))
+#define CONST const
+#define STATIC static
