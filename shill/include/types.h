@@ -5,6 +5,7 @@
  */
 
 #pragma once
+#include <stddef.h>
 #include <stdint.h>
 
 typedef uint8_t  U8;
@@ -17,4 +18,10 @@ typedef int8_t  I8;
 typedef int16_t I16;
 typedef int32_t I32;
 typedef int64_t I64;
-typedef ssize_t __SWORD_TYPE;
+
+typedef unsigned char CHAR;
+typedef const char* CSTRING;
+typedef uintptr_t PTR;
+typedef void VOID;
+
+#define NORETURN __attribute((noreturn))
