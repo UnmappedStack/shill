@@ -24,3 +24,13 @@ USIZE CStringLength(CSTRING Str);
  * Returns TRUE if they are equal otherwise FALSE
  */
 BOOL CStringsAreEqual(CSTRING Str1, CSTRING Str2);
+
+/* Checks if two ranges of memory have the same values
+ *
+ * Buf1: The buffer to compare with Buf2
+ * Buf2: The buffer to compare with Buf1
+ * Length: The number of bytes to compare
+ *
+ * Returns TRUE if equal otherwise FALSE
+ */
+BOOL BuffersAreEqual(VOID *Buf1, VOID *Buf2, USIZE Length);

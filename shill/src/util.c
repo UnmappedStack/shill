@@ -41,3 +41,19 @@ BOOL CStringsAreEqual(CSTRING Str1, CSTRING Str2) {
 
     return TRUE;
 }
+
+/* Checks if two ranges of memory have the same values
+ *
+ * Buf1: The buffer to compare with Buf2
+ * Buf2: The buffer to compare with Buf1
+ * Length: The number of bytes to compare
+ *
+ * Returns TRUE if equal otherwise FALSE
+ */
+BOOL BuffersAreEqual(VOID *Buf1, VOID *Buf2, USIZE Length) {
+    for (USIZE Offset = 0; Offset < Length; Offset++) {
+        if (((U8*)Buf1)[Offset] != ((U8*)Buf2)[Offset]) return FALSE;
+    }
+
+    return TRUE;
+}
