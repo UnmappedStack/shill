@@ -17,3 +17,12 @@ Early work is still in progress so Shill is primarily being built around the Hyp
 The kernel-facing API will probably be custom and not based around any particular bootloader protocol. Docs may be seen as the project goes on.
 
 LLM-generated PRs will be closed and ignored.
+
+## License
+
+This project is under the Mozilla Public Licence 2.0 everywhere except otherwise stated in header files, please see LICENSE in the root of this repository.
+
+3rd party components with differing licences include:
+
+ - **tinyprintf**: This is under the GPL 2.1. (TODO: very urgently move away from this, as I type this I realise it is not compatible with MPL...)
+ - **Ultra boot protocol header file**: Under MIT with heavy modifications, particularly in styling and some additions to expose more stuff.
