@@ -78,10 +78,10 @@ VOID LoadKernel(PTR KernelStart) {
     }
 
     PTR Offset = FileHeader->ProgramHeaderOffset;
-    for (USIZE Entry = 0; Entry < FileHeader.ProgramHeaderEntryCount; Entry++) {
+    for (USIZE Entry = 0; Entry < FileHeader->ProgramHeaderEntryCount; Entry++) {
         ElfProgramHeader *ProgramHeader = (ElfProgramHeader*) (KernelStart + Offset);
-        if (ProgramHeader.Type != ELF_LOADABLE) {
-            Offset += ProgramHeader->Size;
+        if (ProgramHeader->Type != ELF_LOADABLE) {
+//            Offset += ProgramHeader->Size;
 
             // I got here then realised I need a bootstrap physical allocator
             // first... I'll come back to this later lol

@@ -23,6 +23,7 @@ ProtocolInterface ProtocolInterfaces[] = {
     [BOOT_PROTOCOL_HYPER] = {
         HyperGetDirectMapOffset,
         HyperGetKernelImageStart,
+        HyperGetMemoryMap,
     },
 };
 
@@ -41,6 +42,28 @@ VOID PutChar(VOID *P, UBCHAR C) {
     WriteSerialChar(C);
 }
 
+CSTRING StringifiedMemoryMapTypes[] = {
+    [SHILL_MEMORY_USABLE            ] = "Usable",
+    [SHILL_MEMORY_RESERVED          ] = "Reserved",
+    [SHILL_MEMORY_INVALID           ] = "Invalid",
+    [SHILL_MEMORY_ACPI_RECLAIMABLE  ] = "ACPI reclaimable",
+    [SHILL_MEMORY_ACPI_NVS          ] = "ACPI NVS",
+    [SHILL_MEMORY_BTLDR_RECLAIMABLE ] = "Bootloader reclaimable",
+    [SHILL_MEMORY_MODULE            ] = "Bootloader module", 
+    [SHILL_MEMORY_KERNEL_STACK      ] = "Kernel stack",
+    [SHILL_MEMORY_KERNEL_BINARY     ] = "Kernel binary", 
+};
+
+VOID DumpMemoryMap(ShillMemoryMap *MemoryMap) {
+    WriteConsole("  -> Memory map dump:\n");
+    for (USIZE Entry = 0; Entry < MemoryMap->NumEntries; Entry++) {
+        WriteConsole("       %012p: %09zu pages, %s\n",
+                MemoryMap->Entries[Entry].PhysicalBase,
+                MemoryMap->Entries[Entry].SizePages,
+                StringifiedMemoryMapTypes[MemoryMap->Entries[Entry].Type]);
+    }
+}
+
 /* Entry point for the prekernel.
  *
  * arg1 and arg2 parameters depend on the bootloader protocol and will be
@@ -54,12 +77,14 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     BootProtocol Protocol = DetectBootProtocol(Arg1, Arg2);
     WriteConsole("Boot protocol detected: %s\n", StringifiedProtocols[Protocol]);
 
-    BootInfoBlock BootInfo = {0};
+    ShillBootInfoBlock BootInfo = {0};
     BootInfo.DirectMapOffset = ProtocolInterfaces[Protocol].GetDirectMapOffset(Arg1, Arg2);
+    BootInfo.MemoryMap       = ProtocolInterfaces[Protocol].GetMemoryMap(Arg1, Arg2);
 
     WriteConsole("Read boot info:\n"
                  "  -> Direct map offset (HHDM): %p\n",
-                 BootInfo.DirectMapOffset);
+                 (VOID*) BootInfo.DirectMapOffset);
+    DumpMemoryMap(BootInfo.MemoryMap);
 
     WriteConsole("Trying to load kernel image...\n");
     LoadKernel(ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));

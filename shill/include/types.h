@@ -27,7 +27,8 @@ typedef const char* CSTRING;
 typedef uintptr_t PTR;
 #define VOID void
 
-#define NULLPTR nullptr
+// TODO: check if nullptr is defined then use that instead if so
+#define NULLPTR NULL
 #define NORETURN __attribute((noreturn))
 #define CONST const
 #define STATIC static

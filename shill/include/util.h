@@ -7,6 +7,24 @@
  */
 
 #include <types.h>
+#include <printf.h>
+#include <hal.h>
+
+#define PAGE_SIZE (4096)
+
+#define _STRINGIFY(X) #X
+#define STRINGIFY(X) _STRINGIFY(X)
+
+#define ALIGN_UP(X, A) (((((PTR)X) + (A-1)) / (A)) * (A))
+#define ALIGN_DOWN(X, A) (((X) / (A)) * (A))
+
+#define ASSERT(X) \
+    do { \
+        if (!(X)) { \
+            WriteConsole("Assert failed: " STRINGIFY(X) "\n"); \
+            HaltDevice(); \
+        } \
+    } while (0)
 
 /* Gets the number of characters of a C string
  *

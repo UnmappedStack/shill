@@ -7,6 +7,7 @@
 #include <api.h>
 PTR HyperGetDirectMapOffset(PTR Context, PTR Magic);
 PTR HyperGetKernelImageStart(PTR Context, PTR Magic);
+ShillMemoryMap *HyperGetMemoryMap(PTR Context, PTR Magic);
 
 // Copyright (c) 2022-2023 UltraOS
 // SPDX-License-Identifier: MIT
@@ -116,7 +117,7 @@ typedef struct {
     U64 Size;
     U64 Type;
 } UltraMemoryMapEntry;
-#define ULTRA_MEMORY_MAP_ENTRY_COUNT(Header) ((((Header).Size) - sizeof(UltraAttributeHeader)) / sizeof(UltraMemoryMapEntry))
+#define ULTRA_MEMORY_MAP_ENTRY_COUNT(Header) ((((Header)->Size) - sizeof(UltraAttributeHeader)) / sizeof(UltraMemoryMapEntry))
 
 typedef struct {
     UltraAttributeHeader Header;
