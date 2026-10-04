@@ -5,11 +5,13 @@
  */
 
 #include <ldkernel.h>
+#include <balloc.h>
 #include <printf.h>
 #include <hyper.h>
 #include <types.h>
 #include <api.h>
 #include <hal.h>
+#include <balloc.h>
 
 typedef enum {
     BOOT_PROTOCOL_HYPER,
@@ -43,15 +45,16 @@ VOID PutChar(VOID *P, UBCHAR C) {
 }
 
 CSTRING StringifiedMemoryMapTypes[] = {
-    [SHILL_MEMORY_USABLE            ] = "Usable",
-    [SHILL_MEMORY_RESERVED          ] = "Reserved",
-    [SHILL_MEMORY_INVALID           ] = "Invalid",
-    [SHILL_MEMORY_ACPI_RECLAIMABLE  ] = "ACPI reclaimable",
-    [SHILL_MEMORY_ACPI_NVS          ] = "ACPI NVS",
-    [SHILL_MEMORY_BTLDR_RECLAIMABLE ] = "Bootloader reclaimable",
-    [SHILL_MEMORY_MODULE            ] = "Bootloader module", 
-    [SHILL_MEMORY_KERNEL_STACK      ] = "Kernel stack",
-    [SHILL_MEMORY_KERNEL_BINARY     ] = "Kernel binary", 
+    [SHILL_MEMORY_USABLE             ] = "Usable",
+    [SHILL_MEMORY_RESERVED           ] = "Reserved",
+    [SHILL_MEMORY_INVALID            ] = "Invalid",
+    [SHILL_MEMORY_ACPI_RECLAIMABLE   ] = "ACPI reclaimable",
+    [SHILL_MEMORY_ACPI_NVS           ] = "ACPI NVS",
+    [SHILL_MEMORY_BTLDR_RECLAIMABLE  ] = "Bootloader reclaimable",
+    [SHILL_MEMORY_MODULE             ] = "Bootloader module", 
+    [SHILL_MEMORY_KERNEL_STACK       ] = "Kernel stack",
+    [SHILL_MEMORY_KERNEL_BINARY      ] = "Kernel binary", 
+    [SHILL_MEMORY_PREBOOT_RECLAIMABLE] = "Prekernel reclaimable",
 };
 
 VOID DumpMemoryMap(ShillMemoryMap *MemoryMap) {
@@ -80,6 +83,7 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     ShillBootInfoBlock BootInfo = {0};
     BootInfo.DirectMapOffset = ProtocolInterfaces[Protocol].GetDirectMapOffset(Arg1, Arg2);
     BootInfo.MemoryMap       = ProtocolInterfaces[Protocol].GetMemoryMap(Arg1, Arg2);
+    InitBootstrapAllocator(BootInfo.MemoryMap);
 
     WriteConsole("Read boot info:\n"
                  "  -> Direct map offset (HHDM): %p\n",
