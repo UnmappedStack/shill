@@ -27,3 +27,5 @@ This project is under the Mozilla Public Licence 2.0 everywhere except otherwise
 
  - **nanoprintf**: This is under 0BSD, has some modifications, see `/include/printf.h`
  - **Ultra boot protocol header file**: Under MIT, has heavy modifications, particularly in styling and some additions to expose more stuff, see `/include/utra.h`
+
+In all cases, any modifications to these files will be under the original license that these files are listed as above as well, not my own MPL 2.0 license that the rest of the project is under.
