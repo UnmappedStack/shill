@@ -26,6 +26,10 @@
         } \
     } while (0)
 
+/* Set NumBytes bytes starting from Buf to Val */
+#define CopyBuffer memset
+VOID memset(VOID *Buf, U8 Val, USIZE NumBytes);
+
 /* Gets the number of characters of a C string
  *
  * Str: The string to get the length of

@@ -60,7 +60,8 @@ BOOL BuffersAreEqual(VOID *Buf1, VOID *Buf2, USIZE Length) {
 
 /* We need this because I'm stupid and I'm not using a cross compiler so GCC sometimes
  * complains without it... That's why it doesn't follow the usual naming scheme.
- * That's why its also quite unoptimised, not using rep movsb or whatever */
+ * That's why its also quite unoptimised, not using rep movsb or whatever.
+ * In the header file you can see its named CopyBuffer(). */
 VOID memset(VOID *Buf, U8 Val, USIZE NumBytes) {
     for (USIZE Index = 0; Index < NumBytes; Index++) {
         ((U8*)Buf)[Index] = Val;

@@ -1,6 +1,6 @@
 /* x86_64 specific operations
  *
- * See include/hal.h
+ * See include/hal.h and include/x86_64.h
  * 
  * Copyright 2026 Jake Steinburger (UnmappedStack) under the Mozilla Public
  * Licence 2.0. See LICENSE in the root of the repository for more information.

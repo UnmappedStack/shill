@@ -20,7 +20,7 @@
 
 STATIC ShillMemoryMapEntry *BumpCurrentRegion = NULLPTR;
 STATIC PTR BumpCurrentOffset = 0; // (in pages)
-STATIC ShillMemoryMap *GMemoryMap = NULLPTR;
+ShillMemoryMap *GMemoryMap = NULLPTR;
 
 /* Find the first usable region of the memory map and set it
  * as the start of the bump allocator

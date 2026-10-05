@@ -9,6 +9,8 @@
 #include <types.h>
 #include <api.h>
 
+extern ShillMemoryMap *GMemoryMap;
+
 /* Find the first usable region of the memory map and set it
  * as the start of the bump allocator
  *

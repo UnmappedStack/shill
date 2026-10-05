@@ -8,6 +8,12 @@
 
 #include <types.h>
 
+#if defined(__x86_64__)
+#include <x86_64.h>
+#else
+#error "compiled shill for unsupported architecture"
+#endif
+
 /* Disables maskable interrupts */
 VOID DisableInterrupts(VOID);
 
