@@ -15,7 +15,7 @@ I plan to use Shill for Trickster, the kernel of my hobby OS TacOS. By the time 
 
 Early work is still in progress so Shill is primarily being built around the Hyper boot protocol at the moment. Support for the other protocols listed above are planned. For now this will probably only support x86_64 but at some point I might try to expand that.
 
-The kernel-facing API will probably be custom and not based around any particular bootloader protocol. Docs may be seen as the project goes on.
+The kernel-facing API will probably be custom and not based around any particular bootloader protocol. Early stage WIP docs can be found in `USAGE.md`.
 
 LLM-generated PRs will be closed and ignored.
 
