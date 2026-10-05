@@ -4,6 +4,7 @@
  * Licence 2.0. See LICENSE in the root of the repository for more information.
  */
 
+#define NANOPRINTF_IMPLEMENTATION
 #include <ldkernel.h>
 #include <balloc.h>
 #include <printf.h>
@@ -39,7 +40,7 @@ BootProtocol DetectBootProtocol(PTR Arg1, PTR Arg2) {
 }
 
 /* Dummy function for tinyprintf to use for printing a character to serial. */
-VOID PutChar(VOID *P, UBCHAR C) {
+VOID PutChar(INT C, VOID *P) {
     (void) P;
     WriteSerialChar(C);
 }
@@ -73,8 +74,6 @@ VOID DumpMemoryMap(ShillMemoryMap *MemoryMap) {
  * checked. */
 VOID BootEntry(PTR Arg1, PTR Arg2) {
     InitSerial();
-    InitPrintf(NULLPTR, PutChar);
-
     WriteConsole("\nEntered Shill\n");
 
     BootProtocol Protocol = DetectBootProtocol(Arg1, Arg2);

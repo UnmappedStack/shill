@@ -5,6 +5,7 @@ A prekernel with the goal of supporting the following protocols:
  - [Ultra](https://github.com/UltraOS/UltraProtocol) (primarily through the Hyper bootloader)
  - [Limine](https://github.com/Limine-Bootloader/limine-protocol) (primarily through the Limine bootloader)
  - [Multiboot 1](https://www.gnu.org/software/grub/manual/multiboot/multiboot.html) (and maybe 2? I mostly only want MB1 for qemu's `-kernel`)
+ - Maybe eventually EFI stub support directly, not sure if that's worth it though
 
 I plan to use Shill for Trickster, the kernel of my hobby OS TacOS. By the time Shill is in a usable state, it should:
 
@@ -24,5 +25,5 @@ This project is under the Mozilla Public Licence 2.0 everywhere except otherwise
 
 3rd party components with differing licences include:
 
- - **tinyprintf**: This is under the GPL 2.1. (TODO: very urgently move away from this, as I type this I realise it is not compatible with MPL...)
- - **Ultra boot protocol header file**: Under MIT with heavy modifications, particularly in styling and some additions to expose more stuff.
+ - **nanoprintf**: This is under 0BSD, has some modifications, see `/include/printf.h`
+ - **Ultra boot protocol header file**: Under MIT, has heavy modifications, particularly in styling and some additions to expose more stuff, see `/include/utra.h`

@@ -25,6 +25,7 @@ typedef char UBCHAR;
 typedef unsigned char CHAR;
 typedef const char* CSTRING;
 typedef uintptr_t PTR;
+typedef int INT;
 #define VOID void
 
 // TODO: check if nullptr is defined then use that instead if so
