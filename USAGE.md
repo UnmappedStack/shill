@@ -9,7 +9,7 @@ You can see the `build-*.sh` scripts for setting up a template which starts a ba
 
 The kernel executable can currently only be an ELF64 file.
 
-The important thing to note is that your bootloader of choice's configuration file must have a module referring to the kernel which Shill need to load, and this module's name field must contain `SHILL_KERNEL_IMAGE_START`. For example, in a `hyper.cfg`, this would look like:
+The important thing to note is that your bootloader of choice's configuration file must have a module referring to the kernel which Shill needs to load, and this module's name field must contain `SHILL_KERNEL_IMAGE_START`. For example, in a `hyper.cfg`, this would look like:
 
 ```
 module:
@@ -65,7 +65,7 @@ uintptr_t phys_addr = virt_addr - boot_block->direct_map_offset;
 
 and
 
-```
+```C
 // phys->virt conversion
 uintptr_t virt_addr = phys_addr + boot_block->direct_map_offset;
 ```
