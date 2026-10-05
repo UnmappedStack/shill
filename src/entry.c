@@ -27,6 +27,7 @@ ProtocolInterface ProtocolInterfaces[] = {
         HyperGetDirectMapOffset,
         HyperGetKernelImageStart,
         HyperGetMemoryMap,
+        HyperGetPrekernelInfo,
     },
 };
 

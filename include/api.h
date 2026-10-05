@@ -37,6 +37,12 @@ typedef struct {
     ShillMemoryMapEntry Entries[];
 } ShillMemoryMap;
 
+typedef struct {
+    PTR VirtualBase;
+    PTR PhysicalBase;
+    PTR SizeBytes;
+} ShillPrekernelInfo;
+
 /* The structure passed directly to the kernel containing the abstracted
  * away boot information */
 typedef struct {
@@ -50,4 +56,5 @@ typedef struct {
     PTR (*GetDirectMapOffset)(PTR, PTR);
     PTR (*GetKernelImageStart)(PTR, PTR);
     ShillMemoryMap *(*GetMemoryMap)(PTR, PTR);
+    ShillPrekernelInfo (*GetPrekernelInfo)(PTR, PTR);
 } ProtocolInterface;

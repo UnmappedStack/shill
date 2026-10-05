@@ -15,6 +15,11 @@
 
 STATIC PTR GDirectMapOffset = 0;
 
+extern U8 PrekernelBinaryReadOnlyStart[];
+extern U8 PrekernelBinaryReadOnlyEnd[];
+extern U8 PrekernelBinaryWritableStart[];
+extern U8 PrekernelBinaryWritableEnd[];
+
 /* Try create the next layer of a page tree for a given index, or create it if
  * it doesn't already exist. Probably only used by MapPage
  *
@@ -110,6 +115,50 @@ void AllocVirtuallyConsecutivePages(USIZE *PML4, PTR VirtAddrStart, USIZE NumPag
     }
 }
 
+/* Maps one section of the prekernel binary into the virtual memory space
+ *
+ * Side effects:
+ *      - PML4 will be modified with the new mappings
+ *      - Memory will be allocated
+ *
+ * PML4: the virtual address of the page tree to map into
+ * Start: the virtual address to start mapping from
+ * End: the virtual address to stop mapping at
+ * Flags: the MMU flags to use
+ * PrekernelInfo: a struct of the virtual/physical location of the prekernel
+ */
+void MapPrekernelSection(USIZE *PML4, PTR Start, PTR End, USIZE Flags, ShillPrekernelInfo *PrekernelInfo) {
+    PTR KernelPhysAddr = PrekernelInfo->PhysicalBase;
+    PTR KernelVirtAddr = PrekernelInfo->VirtualBase;
+
+    USIZE Length = ALIGN_UP(End, PAGE_SIZE) - Start;
+    USIZE PhysAddr = KernelPhysAddr + (Start - KernelVirtAddr);
+
+    MapConsecutivePages(PML4, Start, PhysAddr, Length / PAGE_SIZE, Flags);
+}
+
+/* Maps the prekernel binary into a virtual memory space
+ *
+ * Side effects:
+ *      - PML4 will be modified with the new mappings
+ *      - Memory will be allocated
+ *
+ * PML4: the virtual address of the page tree to map into
+ * Start: the virtual address to start mapping from
+ * End: the virtual address to stop mapping at
+ * Flags: the MMU flags to use
+ * PrekernelInfo: a struct of the virtual/physical location of the prekernel
+ */
+void MapPrekernelIntoVirtualMemorySpace(USIZE *PML4, ShillPrekernelInfo *PrekernelInfo) {
+    PTR PrekernelReadonlyStart = (PTR) PrekernelBinaryReadOnlyStart;
+    PTR PrekernelReadonlyEnd   = (PTR) PrekernelBinaryReadOnlyEnd;
+    PTR PrekernelWritableStart = (PTR) PrekernelBinaryWritableStart;
+    PTR PrekernelWritableEnd   = (PTR) PrekernelBinaryWritableEnd;
+
+    MapPrekernelSection(PML4, PrekernelReadonlyStart, PrekernelReadonlyEnd, PAGE_PRESENT, PrekernelInfo);
+    MapPrekernelSection(PML4, PrekernelWritableStart, PrekernelWritableEnd, PAGE_PRESENT | PAGE_WRITE, PrekernelInfo);
+}
+
 /* maps all memory that could be used into a virtual memory space
  *
  * Side effects:
@@ -119,6 +168,9 @@ void AllocVirtuallyConsecutivePages(USIZE *PML4, PTR VirtAddrStart, USIZE NumPag
  * PML4: the virtual address of the root of the page tree to map into
  */
 void MapAllMemoryIntoVMemSpace(USIZE *PML4) {
+    // TODO: we currently map into whatever direct map offset the bootloader
+    // gives us. for now this is fine but with stuff like multiboot later it'll
+    // be an issue
     ShillMemoryMapEntry *Entries = GMemoryMap->Entries;
     USIZE NumEntries = GMemoryMap->NumEntries;
     for (USIZE Entry = 0; Entry < NumEntries; Entry++) {
@@ -135,15 +187,17 @@ void MapAllMemoryIntoVMemSpace(USIZE *PML4) {
  * Side effects: writes DirectMapOffset to GDirectMapOffset global
  *
  * DirectMapOffset: The HHDM used *before* the new page tree
+ * PrekernelInfo: a struct of the virtual/physical location of the prekernel
  *
  * Returns the physical address of the new page tree pml4 */
-PTR CreateNewAddressSpace(PTR DirectMapOffset) {
+PTR CreateNewAddressSpace(PTR DirectMapOffset, ShillPrekernelInfo *PrekernelInfo) {
     GDirectMapOffset = DirectMapOffset;
     PTR PML4PhysAddr = AllocPhysPage();
     USIZE *PML4VirtAddr = (USIZE*) (PML4PhysAddr + GDirectMapOffset);
     CopyBuffer(PML4VirtAddr, 0, PAGE_SIZE);
 
     MapAllMemoryIntoVMemSpace(PML4VirtAddr);
+    MapPrekernelIntoVirtualMemorySpace(PML4VirtAddr, PrekernelInfo);
    
     return PML4PhysAddr;
 }

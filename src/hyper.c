@@ -169,3 +169,16 @@ Skip:
                  "SHILL_KERNEL_IMAGE_START\n\nHalting device\n");
     HaltDevice();
 }
+
+/* Get basic information about the prekernel */
+ShillPrekernelInfo HyperGetPrekernelInfo(PTR Context, PTR Magic) {
+    UltraBootContext *BootContext = (UltraBootContext*) Context;
+    UltraAttributeHeader *Header = UltraGetAttributeOfType(BootContext, ULTRA_ATTRIBUTE_KERNEL_INFO); 
+    UltraKernelInfoAttribute *PrekernelInfo = CONTAINER_OF(Header, UltraKernelInfoAttribute, Header);
+
+    return (ShillPrekernelInfo) {
+        .VirtualBase  = PrekernelInfo->VirtualBase,
+        .PhysicalBase = PrekernelInfo->PhysicalBase,
+        .SizeBytes    = PrekernelInfo->Size,
+    };
+}

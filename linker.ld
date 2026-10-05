@@ -3,15 +3,16 @@ ENTRY(BootEntry)
 
 PHDRS
 {
-    text   PT_LOAD FLAGS(5); /* R-X */
-    rodata PT_LOAD FLAGS(4); /* R-- */
-    data   PT_LOAD FLAGS(6); /* RW- */
+    text            PT_LOAD FLAGS(5); /* R-X */
+    rodata          PT_LOAD FLAGS(4); /* R-- */
+    data            PT_LOAD FLAGS(6); /* RW- */
 }
 
 SECTIONS
 {
     . = 0xffffffffff800000;
 
+    PrekernelBinaryReadOnlyStart = .;
     .text : {
         *(.text .text.*)
     } :text
@@ -23,6 +24,8 @@ SECTIONS
     } :rodata
 
     . = ALIGN(CONSTANT(MAXPAGESIZE));
+    PrekernelBinaryReadOnlyEnd = .;
+    PrekernelBinaryWritableStart = .;
 
     .data : {
         *(.data .data.*)
@@ -32,6 +35,9 @@ SECTIONS
         *(.bss .bss.*)
         *(COMMON)
     } :data
+    
+    . = ALIGN(CONSTANT(MAXPAGESIZE));
+    PrekernelBinaryWritableEnd = .;
 
     /DISCARD/ : {
         *(.eh_frame*)
