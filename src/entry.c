@@ -6,6 +6,7 @@
 
 #define NANOPRINTF_IMPLEMENTATION
 #include <ldkernel.h>
+#include <paging.h>
 #include <balloc.h>
 #include <printf.h>
 #include <hyper.h>
@@ -89,6 +90,10 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
                  "  -> Direct map offset (HHDM): %p\n",
                  (VOID*) BootInfo.DirectMapOffset);
     DumpMemoryMap(BootInfo.MemoryMap);
+
+    WriteConsole("Switching to new page tree to replace bootloader's...\n");
+    ShillPrekernelInfo PrekernelInfo = ProtocolInterfaces[Protocol].GetPrekernelInfo(Arg1, Arg2);
+    CreateNewAddressSpace(BootInfo.DirectMapOffset, &PrekernelInfo);
 
     WriteConsole("Trying to load kernel image...\n");
     LoadKernel(ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));

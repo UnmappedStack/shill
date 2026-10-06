@@ -25,20 +25,21 @@ extern U8 PrekernelBinaryWritableEnd[];
  *
  * Side effects: 
  *      - may modify page tree in ParentLayer
- *      - physical memory may be allocated
+ *      - physical memory may be allocated 
  *
  * ParentLayer: The layer of the paging radix tree to get/create at index Index
  * Index: The index of the ParentLayer to get/create
  *
  * Returns a pointer to the page entry which refers to the next layer
  */
-USIZE *GetOrCreateNextLayer(USIZE *ParentLayer, USIZE Index) {
+U64 *GetOrCreateNextLayer(U64 *ParentLayer, U64 Index) {
+    ASSERT(GDirectMapOffset);
     /* if the index of a page tree level needed does not already exist,
      * make it with full permissions, and allocate for the next level's table to
      * be used for further child tables. */
     if (!ParentLayer[Index]) {
         PTR ChildPhysAddr = AllocPhysPage();
-        CopyBuffer((void*)(ChildPhysAddr + GDirectMapOffset), 0, PAGE_SIZE);
+        CopyBuffer((VOID*)(ChildPhysAddr + GDirectMapOffset), 0, PAGE_SIZE);
 
         ParentLayer[Index] = PAGE_TABLE_ENTRY(
                                  ChildPhysAddr,
@@ -47,7 +48,7 @@ USIZE *GetOrCreateNextLayer(USIZE *ParentLayer, USIZE Index) {
     }
     // once we know it exists, we can return it
     PTR PhysAddr = PADDR_FROM_TABLE_ENTRY((PTR) ParentLayer[Index]);
-    return (USIZE*) (PhysAddr + GDirectMapOffset);
+    return (U64*) (PhysAddr + GDirectMapOffset);
 }
 
 /* Map a virtual page to a physical page
@@ -61,11 +62,11 @@ USIZE *GetOrCreateNextLayer(USIZE *ParentLayer, USIZE Index) {
  * PhysAddr: the physical address to map to VirtAddr
  * Flags: the MMU flags to use
  */
-void MapPage(USIZE *PML4VirtAddr, PTR VirtAddr, PTR PhysAddr, USIZE Flags) {
+VOID MapPage(U64 *PML4VirtAddr, PTR VirtAddr, PTR PhysAddr, U64 Flags) {
     VirtAddr &= ~0xFFFF000000000000ULL; /* must be canonical */
 
-    USIZE *CurrentLayerVirtAddr = PML4VirtAddr;
-    for (U8 PMLLevel = 4; PMLLevel > 1; PMLLevel --) {
+    U64 *CurrentLayerVirtAddr = PML4VirtAddr;
+    for (U8 PMLLevel = 4; PMLLevel > 1; PMLLevel--) {
         CurrentLayerVirtAddr = GetOrCreateNextLayer(
                                    CurrentLayerVirtAddr,
                                    TABLE_FROM_VADDR(VirtAddr, PMLLevel)
@@ -89,10 +90,10 @@ void MapPage(USIZE *PML4VirtAddr, PTR VirtAddr, PTR PhysAddr, USIZE Flags) {
  * NumPages: the number of pages, starting from VirtAddrStart/PhysAddrStart, to map
  * Flags: the MMU flags to use
  */
-void MapConsecutivePages(USIZE *PML4, PTR VirtAddrStart, PTR PhysAddrStart,
-                           USIZE NumPages, USIZE Flags) {
+VOID MapConsecutivePages(U64 *PML4, PTR VirtAddrStart, PTR PhysAddrStart,
+                           U64 NumPages, U64 Flags) {
     // This could probably be faster, but I feel like this is the more readable implementation
-    for (USIZE Offset = 0; Offset < NumPages; Offset++)
+    for (U64 Offset = 0; Offset < NumPages; Offset++)
         MapPage(PML4, VirtAddrStart + Offset * PAGE_SIZE, PhysAddrStart + Offset * PAGE_SIZE, Flags);
 }
 
@@ -108,8 +109,8 @@ void MapConsecutivePages(USIZE *PML4, PTR VirtAddrStart, PTR PhysAddrStart,
  * NumPages: the number of pages from VirtAddrStart to map
  * Flags: the MMU flags to use
  */
-void AllocVirtuallyConsecutivePages(USIZE *PML4, PTR VirtAddrStart, USIZE NumPages, USIZE Flags) {
-    for (USIZE Offset = 0; Offset < NumPages; Offset++) {
+VOID AllocVirtuallyConsecutivePages(U64 *PML4, PTR VirtAddrStart, U64 NumPages, U64 Flags) {
+    for (U64 Offset = 0; Offset < NumPages; Offset++) {
         PTR PhysPage = AllocPhysPage();
         MapPage(PML4, VirtAddrStart + Offset * PAGE_SIZE, PhysPage, Flags);
     }
@@ -127,12 +128,12 @@ void AllocVirtuallyConsecutivePages(USIZE *PML4, PTR VirtAddrStart, USIZE NumPag
  * Flags: the MMU flags to use
  * PrekernelInfo: a struct of the virtual/physical location of the prekernel
  */
-void MapPrekernelSection(USIZE *PML4, PTR Start, PTR End, USIZE Flags, ShillPrekernelInfo *PrekernelInfo) {
+VOID MapPrekernelSection(U64 *PML4, PTR Start, PTR End, U64 Flags, ShillPrekernelInfo *PrekernelInfo) {
     PTR KernelPhysAddr = PrekernelInfo->PhysicalBase;
     PTR KernelVirtAddr = PrekernelInfo->VirtualBase;
 
-    USIZE Length = ALIGN_UP(End, PAGE_SIZE) - Start;
-    USIZE PhysAddr = KernelPhysAddr + (Start - KernelVirtAddr);
+    U64 Length = ALIGN_UP(End, PAGE_SIZE) - Start;
+    U64 PhysAddr = KernelPhysAddr + (Start - KernelVirtAddr);
 
     MapConsecutivePages(PML4, Start, PhysAddr, Length / PAGE_SIZE, Flags);
 }
@@ -149,7 +150,7 @@ void MapPrekernelSection(USIZE *PML4, PTR Start, PTR End, USIZE Flags, ShillPrek
  * Flags: the MMU flags to use
  * PrekernelInfo: a struct of the virtual/physical location of the prekernel
  */
-void MapPrekernelIntoVirtualMemorySpace(USIZE *PML4, ShillPrekernelInfo *PrekernelInfo) {
+VOID MapPrekernelIntoVirtualMemorySpace(U64 *PML4, ShillPrekernelInfo *PrekernelInfo) {
     PTR PrekernelReadonlyStart = (PTR) PrekernelBinaryReadOnlyStart;
     PTR PrekernelReadonlyEnd   = (PTR) PrekernelBinaryReadOnlyEnd;
     PTR PrekernelWritableStart = (PTR) PrekernelBinaryWritableStart;
@@ -167,17 +168,18 @@ void MapPrekernelIntoVirtualMemorySpace(USIZE *PML4, ShillPrekernelInfo *Prekern
  *
  * PML4: the virtual address of the root of the page tree to map into
  */
-void MapAllMemoryIntoVMemSpace(USIZE *PML4) {
+VOID MapAllMemoryIntoVMemSpace(U64 *PML4) {
     // TODO: we currently map into whatever direct map offset the bootloader
     // gives us. for now this is fine but with stuff like multiboot later it'll
     // be an issue
     ShillMemoryMapEntry *Entries = GMemoryMap->Entries;
-    USIZE NumEntries = GMemoryMap->NumEntries;
-    for (USIZE Entry = 0; Entry < NumEntries; Entry++) {
+    U64 NumEntries = GMemoryMap->NumEntries;
+    for (U64 Entry = 0; Entry < NumEntries; Entry++) {
         PTR PhysAddr = Entries[Entry].PhysicalBase;
         PTR VirtAddr = Entries[Entry].PhysicalBase + GDirectMapOffset;
         ShillMemoryMapEntryType Type = Entries[Entry].Type;
-        if (Type == SHILL_MEMORY_INVALID || Type == SHILL_MEMORY_RESERVED) continue;
+        if (Type == SHILL_MEMORY_INVALID ||
+                Type == SHILL_MEMORY_RESERVED) continue;
         MapConsecutivePages(PML4, VirtAddr, PhysAddr, Entries[Entry].SizePages, PAGE_PRESENT | PAGE_WRITE);
     }
 }
@@ -193,11 +195,11 @@ void MapAllMemoryIntoVMemSpace(USIZE *PML4) {
 PTR CreateNewAddressSpace(PTR DirectMapOffset, ShillPrekernelInfo *PrekernelInfo) {
     GDirectMapOffset = DirectMapOffset;
     PTR PML4PhysAddr = AllocPhysPage();
-    USIZE *PML4VirtAddr = (USIZE*) (PML4PhysAddr + GDirectMapOffset);
+    U64 *PML4VirtAddr = (U64*) (PML4PhysAddr + GDirectMapOffset);
     CopyBuffer(PML4VirtAddr, 0, PAGE_SIZE);
 
-    MapAllMemoryIntoVMemSpace(PML4VirtAddr);
     MapPrekernelIntoVirtualMemorySpace(PML4VirtAddr, PrekernelInfo);
+    MapAllMemoryIntoVMemSpace(PML4VirtAddr);
    
     return PML4PhysAddr;
 }

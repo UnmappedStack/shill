@@ -5,7 +5,7 @@
 set -e
 
 CFLAGS="-fno-stack-protector -fno-stack-check -ffreestanding -nostdlib \
-        -mno-red-zone -mgeneral-regs-only -mcmodel=kernel -static \
+        -mno-red-zone -mgeneral-regs-only -mcmodel=kernel -static -g \
         -fno-PIC -m64 -march=x86-64 -mno-80387 -mno-mmx -mno-sse -mno-sse2"
 
 # Kind of bad but we build with the system's gcc

@@ -40,4 +40,4 @@ xorriso -as mkisofs \
 
 python3 hyper_install image.iso 
 
-qemu-system-x86_64 image.iso -serial stdio -display none
+qemu-system-x86_64 image.iso -serial stdio -display none -no-reboot -no-shutdown
