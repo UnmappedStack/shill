@@ -62,7 +62,6 @@ UltraMemoryMapEntry *HyperFindMemoryMapEntryLargeEnough(
     for (USIZE Entry = 1; Entry < NumEntries; Entry++) {
         UltraMemoryMapEntry *EntryData = &MMap->Entries[Entry];
         if (EntryData->Size < BytesNeeded || EntryData->Type != ULTRA_MEMORY_TYPE_FREE) continue;
-        WriteConsole("find beeg enough region with start is %p\n", EntryData->PhysicalAddress);
         return EntryData;
     }
     return NULLPTR;
@@ -126,7 +125,6 @@ ShillMemoryMap *HyperGetMemoryMap(PTR Context, PTR Magic) {
     }
 
     ShillMemoryMap *AbstractedMemoryMap = (ShillMemoryMap*) ((PTR)StoreAtEntry->PhysicalAddress + DirectMapOffset);
-    WriteConsole("Find location %p of size %lu bytes\n", AbstractedMemoryMap, StoreAtEntry->Size);
 
     /* remove the space we use for the AbstractedMemoryMap from the entry we
      * put it at so that the kernel won't try write over it later */
