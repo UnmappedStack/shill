@@ -12,4 +12,4 @@
  *
  * KernelStart: The start of the raw kernel ELF in memory from a bootloader module
  */
-VOID LoadKernel(PTR KernelStart);
+VOID LoadKernel(PTR PML4, PTR KernelStart);

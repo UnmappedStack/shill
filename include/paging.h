@@ -18,3 +18,17 @@
  *
  * Returns the physical address of the new page tree pml4 */
 PTR CreateNewAddressSpace(PTR DirectMapOffset, ShillPrekernelInfo *PrekernelInfo);
+
+/* allocates a bunch of non-consecutive physical pages and strings them 
+ * together in virtual memory
+ *
+ * Side effects:
+ *      - PML4 will be modified with the new mappings
+ *      - physical memory will be allocated
+ *
+ * PML4VirtAddr: the virtual address of the page tree to map into
+ * VirtAddrStart: the virtual address to start mapping from
+ * NumPages: the number of pages from VirtAddrStart to map
+ * Flags: the MMU flags to use
+ */
+VOID AllocVirtuallyConsecutivePages(U64 *PML4, PTR VirtAddrStart, U64 NumPages, U64 Flags);

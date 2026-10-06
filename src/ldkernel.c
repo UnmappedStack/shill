@@ -9,9 +9,11 @@
 #include <hal.h>
 #include <util.h>
 #include <printf.h>
+#include <paging.h>
 #include <ldkernel.h>
 
 #define ELF_LOADABLE (1)
+#define ELF_WRITABLE (2)
 
 typedef struct {
     UBCHAR Id[16];
@@ -70,7 +72,7 @@ BOOL VerifyElf(ElfFileHeader *FileHeader) {
  *
  * KernelStart: The start of the raw kernel ELF in memory from a bootloader module
  */
-VOID LoadKernel(PTR KernelStart) {
+VOID LoadKernel(PTR PML4, PTR KernelStart) {
     ElfFileHeader *FileHeader = (ElfFileHeader*) KernelStart;
     if (!VerifyElf(FileHeader)) {
         WriteConsole("Invalid kernel binary\n");
@@ -80,11 +82,21 @@ VOID LoadKernel(PTR KernelStart) {
     PTR Offset = FileHeader->ProgramHeaderOffset;
     for (USIZE Entry = 0; Entry < FileHeader->ProgramHeaderEntryCount; Entry++) {
         ElfProgramHeader *ProgramHeader = (ElfProgramHeader*) (KernelStart + Offset);
-        if (ProgramHeader->Type != ELF_LOADABLE) {
-//            Offset += ProgramHeader->Size;
+        if (ProgramHeader->Type != ELF_LOADABLE && ProgramHeader->VirtualAddress) {
 
-            // I got here then realised I need a bootstrap physical allocator
-            // first... I'll come back to this later lol
+            USIZE Flags = PAGE_PRESENT |
+                (ProgramHeader->Flags & ELF_WRITABLE) ? PAGE_WRITE : 0;
+            AllocVirtuallyConsecutivePages(
+                    (USIZE*) PML4, // page tree
+                    ProgramHeader->VirtualAddress,
+                    ALIGN_UP(ProgramHeader->SizeInMemory, PAGE_SIZE) / PAGE_SIZE, // # pages
+                    Flags);
+
+            CopyBuffer(
+                    (U8*)ProgramHeader->VirtualAddress,
+                    KernelStart + ProgramHeader->Offset,
+                    ProgramHeader->SizeInFile);
         }
+        Offset += FileHeader->ProgramHeaderEntrySize;
     }
 }
