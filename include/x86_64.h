@@ -1,5 +1,4 @@
 /* x86_64 specific definitions
- *
  * See src/x86_64.c and include/hal.h
  *
  * Copyright 2026 Jake Steinburger (UnmappedStack) under the Mozilla Public

@@ -6,7 +6,8 @@ set -e
 
 CFLAGS="-fno-stack-protector -fno-stack-check -ffreestanding -nostdlib \
         -mno-red-zone -mgeneral-regs-only -mcmodel=kernel -static -g \
-        -fno-PIC -m64 -march=x86-64 -mno-80387 -mno-mmx -mno-sse -mno-sse2"
+        -fno-PIC -m64 -march=x86-64 -mno-80387 -mno-mmx -mno-sse -mno-sse2 \
+        -Wall -Wextra -Werror -Wno-format"
 
 # Kind of bad but we build with the system's gcc
-gcc src/* -I include -o shill ${CFLAGS} -T linker.ld
+gcc src/* -I include -o shill ${CFLAGS} -T linker.ld -fsanitize=undefined

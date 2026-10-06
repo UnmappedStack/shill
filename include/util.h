@@ -26,6 +26,8 @@
         } \
     } while (0)
 
+#define UNUSED(X) ((VOID) X)
+
 /* Set NumBytes bytes starting from Buf to Val */
 #define CopyBuffer memset
 VOID memset(VOID *Buf, U8 Val, USIZE NumBytes);

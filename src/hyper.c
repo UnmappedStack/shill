@@ -43,6 +43,7 @@ STATIC UltraAttributeHeader *UltraGetAttributeOfType(UltraBootContext *Context, 
  * support.
  */
 PTR HyperGetDirectMapOffset(PTR Context, PTR Magic) {
+    UNUSED(Magic);
     UltraBootContext *BootContext = (UltraBootContext*) Context;
     UltraAttributeHeader *AttributeHeader = UltraGetAttributeOfType(BootContext, ULTRA_ATTRIBUTE_PLATFORM_INFO);
     UltraPlatformInfoAttribute *Attribute = CONTAINER_OF(AttributeHeader, UltraPlatformInfoAttribute, Header); 
@@ -93,8 +94,8 @@ ShillMemoryMapEntryType HyperToShillMemoryMapType(USIZE HyperType) {
 
     if (HyperType <= ULTRA_MEMORY_TYPE_ACPI_NVS) {
         return ConversionTableLow[HyperType];
-    } else if (HyperType > HIGH_TYPE_OFFSET &
-            HyperType <= ULTRA_MEMORY_TYPE_KERNEL_BINARY) {
+    } else if ((HyperType > HIGH_TYPE_OFFSET) &&
+            (HyperType <= ULTRA_MEMORY_TYPE_KERNEL_BINARY)) {
         return ConversionTableHigh[HyperType - HIGH_TYPE_OFFSET];
     } else {
         WriteConsole("Tried to convert invalid memory type, halt device\n");
@@ -105,6 +106,7 @@ ShillMemoryMapEntryType HyperToShillMemoryMapType(USIZE HyperType) {
 /* Get the physical memory map and abstract it into Shill's own structure
  * instead of the bootloader specific one */
 ShillMemoryMap *HyperGetMemoryMap(PTR Context, PTR Magic) {
+    UNUSED(Magic);
     ASSERT(DirectMapOffset);
 
     UltraBootContext *BootContext = (UltraBootContext*) Context;
@@ -123,7 +125,7 @@ ShillMemoryMap *HyperGetMemoryMap(PTR Context, PTR Magic) {
     }
 
     ShillMemoryMap *AbstractedMemoryMap = (ShillMemoryMap*) ((PTR)StoreAtEntry->PhysicalAddress + DirectMapOffset);
-    WriteConsole("Find location %p of size %p bytes\n", AbstractedMemoryMap, StoreAtEntry->Size);
+    WriteConsole("Find location %p of size %lu bytes\n", AbstractedMemoryMap, StoreAtEntry->Size);
 
     /* remove the space we use for the AbstractedMemoryMap from the entry we
      * put it at so that the kernel won't try write over it later */
@@ -146,6 +148,7 @@ ShillMemoryMap *HyperGetMemoryMap(PTR Context, PTR Magic) {
 
 /* Find the kernel image in memory, from the bootloader's module for it */
 PTR HyperGetKernelImageStart(PTR Context, PTR Magic) {
+    UNUSED(Magic);
     UltraBootContext *BootContext = (UltraBootContext*) Context;
 
     // we can't just use UltraGetAttributeOfType as we need an additional check
@@ -172,6 +175,7 @@ Skip:
 
 /* Get basic information about the prekernel */
 ShillPrekernelInfo HyperGetPrekernelInfo(PTR Context, PTR Magic) {
+    UNUSED(Magic);
     UltraBootContext *BootContext = (UltraBootContext*) Context;
     UltraAttributeHeader *Header = UltraGetAttributeOfType(BootContext, ULTRA_ATTRIBUTE_KERNEL_INFO); 
     UltraKernelInfoAttribute *PrekernelInfo = CONTAINER_OF(Header, UltraKernelInfoAttribute, Header);

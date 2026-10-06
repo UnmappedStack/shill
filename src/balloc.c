@@ -61,7 +61,7 @@ VOID InitBootstrapAllocator(ShillMemoryMap *MemoryMap) {
 PTR AllocPhysPage(VOID) {
     ASSERT(BumpCurrentRegion && GMemoryMap);
 
-    if (BumpCurrentOffset + 1 > BumpCurrentRegion->PhysicalBase + BumpCurrentRegion->SizePages) {
+    if (BumpCurrentOffset + 1 > BumpCurrentRegion->SizePages) {
         BOOL FoundRegion = FALSE;
         for (USIZE EntryIdx = 0; EntryIdx < GMemoryMap->NumEntries; EntryIdx++) {
             ShillMemoryMapEntry *Entry = &GMemoryMap->Entries[EntryIdx];

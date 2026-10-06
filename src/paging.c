@@ -198,8 +198,8 @@ PTR CreateNewAddressSpace(PTR DirectMapOffset, ShillPrekernelInfo *PrekernelInfo
     U64 *PML4VirtAddr = (U64*) (PML4PhysAddr + GDirectMapOffset);
     CopyBuffer(PML4VirtAddr, 0, PAGE_SIZE);
 
-    MapPrekernelIntoVirtualMemorySpace(PML4VirtAddr, PrekernelInfo);
     MapAllMemoryIntoVMemSpace(PML4VirtAddr);
+    MapPrekernelIntoVirtualMemorySpace(PML4VirtAddr, PrekernelInfo);
    
     return PML4PhysAddr;
 }
