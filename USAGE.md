@@ -43,7 +43,7 @@ When your kernel is loaded, it will be passed two parameters:
 void _start(ShillBootInfoBlock *boot_block, uint32_t magic);
 ```
 
-You can confirm that you have been loaded by Shill by checking that `magic` is equal to `0x89352`. `boot_block` points to a value in prekernel-reclaimable memory of the following structure:
+You can confirm that you have been loaded by Shill by checking that `magic` is equal to `0x89352` (or `SHILL_MAGIC`). `boot_block` points to a value in prekernel-reclaimable memory of the following structure:
 
 ```C
 typedef struct {

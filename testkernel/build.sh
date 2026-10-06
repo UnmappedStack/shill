@@ -9,4 +9,4 @@ CFLAGS="-fno-stack-protector -fno-stack-check -ffreestanding -nostdlib \
         -fno-PIC -m64 -march=x86-64 -mno-80387 -mno-mmx -mno-sse -mno-sse2"
 
 # Kind of bad but we build with the system's gcc
-gcc main.c -I include -o ../testkernelbin ${CFLAGS} -T linker.ld
+gcc main.c -I ../shared -o ../testkernelbin ${CFLAGS} -T linker.ld

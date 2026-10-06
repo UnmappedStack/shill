@@ -4,6 +4,8 @@
  * Licence 2.0. See LICENSE in the root of the repository for more information.
  */
 
+#include <shill.h>
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -48,10 +50,16 @@ static void hcf(void) {
         __asm__ volatile ("cli; hlt");
 }
 
-void _start(void) {
+void _start(ShillBootInfoBlock boot_info, uint32_t magic) {
     serial_init();
 
     serial_puts("hello from the test kernel that shill loaded!\n");
+
+    if (magic == SHILL_MAGIC) {
+        serial_puts("SHILL_MAGIC test passes\n");
+    } else {
+        serial_puts("SHILL_MAGIC test fails, did we use something that's not shill?\n");
+    }
 
     hcf();
 }

@@ -107,8 +107,8 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     WriteConsole("Loading kernel image...\n");
     PTR KernelEntry = LoadKernel(PML4Virt, ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));
 
-    WriteConsole("Kernel image loaded, entering kernel at entry point %p...\n", KernelEntry);
-    ((void (*)(void)) KernelEntry)();
+    WriteConsole("Kernel image loaded, entering kernel at entry point %p...\n\n", KernelEntry);
+    ((void (*)(ShillBootInfoBlock BootInfo, U32 Magic)) KernelEntry)(BootInfo, SHILL_MAGIC);
 
     HaltDevice();
 }

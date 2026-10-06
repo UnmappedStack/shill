@@ -10,4 +10,4 @@ CFLAGS="-fno-stack-protector -fno-stack-check -ffreestanding -nostdlib \
         -Wall -Wextra -Werror -Wno-format"
 
 # Kind of bad but we build with the system's gcc
-gcc src/* -I include -o shill ${CFLAGS} -T linker.ld -fsanitize=undefined
+gcc src/* -I include -I shared -o shill ${CFLAGS} -T linker.ld -fsanitize=undefined
