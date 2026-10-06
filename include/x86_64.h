@@ -31,7 +31,6 @@
 
 #define PAGE_TABLE_ENTRY(paddr, flags) (flags | paddr)
 
-// TODO: this wont support higher flags like execute disable properly
 #define PADDR_FROM_TABLE_ENTRY(entry) (ALIGN_DOWN(entry, PAGE_SIZE))
 
 #define VOFF 12
