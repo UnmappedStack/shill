@@ -8,6 +8,8 @@
 
 #include <util.h>
 
+#define ASM __asm__ volatile
+
 /* page flags */
 #define PAGE_PRESENT (1 << 0)
 #define PAGE_WRITE   (1 << 1)

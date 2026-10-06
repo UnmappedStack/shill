@@ -7,8 +7,8 @@
  */
 
 #include <types.h>
+#include <x86_64.h>
 
-#define ASM __asm__ volatile
 #define COM1 0x3F8
 
 /* Disables maskable interrupts */
