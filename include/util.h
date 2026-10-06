@@ -29,7 +29,7 @@
 #define UNUSED(X) ((VOID) X)
 
 /* Set NumBytes bytes starting from Buf to Val */
-#define CopyBuffer memset
+#define SetBuffer memset
 VOID memset(VOID *Buf, U8 Val, USIZE NumBytes);
 
 /* Gets the number of characters of a C string
@@ -58,3 +58,6 @@ BOOL CStringsAreEqual(CSTRING Str1, CSTRING Str2);
  * Returns TRUE if equal otherwise FALSE
  */
 BOOL BuffersAreEqual(VOID *Buf1, VOID *Buf2, USIZE Length);
+
+/* memcpy style, copy NumBytes bytes from Source to Dest */
+VOID CopyBuffer(VOID *Dest, VOID *Source, USIZE NumBytes);

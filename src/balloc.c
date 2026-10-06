@@ -41,6 +41,7 @@ VOID InitBootstrapAllocator(ShillMemoryMap *MemoryMap) {
             BumpCurrentRegion = Entry;
             BumpCurrentOffset = 0; /* technically should already be zero but */
                                    /* can't hurt to be safe i guess lol      */
+            if (Entry->PhysicalBase == 0) BumpCurrentOffset++;
             return;
         }
     }

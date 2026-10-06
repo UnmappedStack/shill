@@ -91,13 +91,24 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
                  (VOID*) BootInfo.DirectMapOffset);
     DumpMemoryMap(BootInfo.MemoryMap);
 
-    WriteConsole("Switching to new page tree to replace bootloader's...\n");
+    WriteConsole("Switching to new page tree to replace bootloaders...\n");
     ShillPrekernelInfo PrekernelInfo = ProtocolInterfaces[Protocol].GetPrekernelInfo(Arg1, Arg2);
     PTR PML4 = CreateNewAddressSpace(BootInfo.DirectMapOffset, &PrekernelInfo);
+    PTR MemoryMapSize = ALIGN_UP(sizeof(ShillMemoryMap) + sizeof(ShillMemoryMapEntry) * BootInfo.MemoryMap->NumEntries, PAGE_SIZE);
+    MapConsecutivePages(
+            (USIZE*) PML4, 
+            (PTR) BootInfo.MemoryMap,
+            (PTR) BootInfo.MemoryMap - BootInfo.DirectMapOffset,
+            MemoryMapSize,
+            PAGE_WRITE | PAGE_PRESENT);
+    PTR PML4Virt = PML4 + BootInfo.DirectMapOffset;
     SWITCH_PAGE_TREE(PML4);
 
-    WriteConsole("Trying to load kernel image...\n");
-    LoadKernel(PML4, ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));
+    WriteConsole("Loading kernel image...\n");
+    PTR KernelEntry = LoadKernel(PML4Virt, ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));
+
+    WriteConsole("Kernel image loaded, entering kernel at entry point %p...\n", KernelEntry);
+    ((void (*)(void)) KernelEntry)();
 
     HaltDevice();
 }

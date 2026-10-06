@@ -62,6 +62,7 @@ UltraMemoryMapEntry *HyperFindMemoryMapEntryLargeEnough(
     for (USIZE Entry = 1; Entry < NumEntries; Entry++) {
         UltraMemoryMapEntry *EntryData = &MMap->Entries[Entry];
         if (EntryData->Size < BytesNeeded || EntryData->Type != ULTRA_MEMORY_TYPE_FREE) continue;
+        WriteConsole("find beeg enough region with start is %p\n", EntryData->PhysicalAddress);
         return EntryData;
     }
     return NULLPTR;
@@ -159,7 +160,7 @@ PTR HyperGetKernelImageStart(PTR Context, PTR Magic) {
 
         UltraModuleInfoAttribute *Attribute = CONTAINER_OF(CurrentHeader, UltraModuleInfoAttribute, Header);
         if (CStringsAreEqual("SHILL_KERNEL_IMAGE_START", Attribute->Name)) {
-            return Attribute->Address;
+            return Attribute->Address + DirectMapOffset;
         }
        
 Skip:

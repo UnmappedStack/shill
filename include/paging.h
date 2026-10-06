@@ -32,3 +32,31 @@ PTR CreateNewAddressSpace(PTR DirectMapOffset, ShillPrekernelInfo *PrekernelInfo
  * Flags: the MMU flags to use
  */
 VOID AllocVirtuallyConsecutivePages(U64 *PML4, PTR VirtAddrStart, U64 NumPages, U64 Flags);
+
+/* Map a range of virtual addresses to physical addresses
+ *
+ * Side effects:
+ *      - modifies the page tree in PML4VirtAddr
+ *      - physical memory may be allocated
+ *
+ * PML4VirtAddr: the virtual address of the page tree to map it in
+ * VirtAddrStart: the virtual address to start mapping to PhysAddr from
+ * PhysAddrStart: the physical address to start mapping to VirtAddr from
+ * NumPages: the number of pages, starting from VirtAddrStart/PhysAddrStart, to map
+ * Flags: the MMU flags to use
+ */
+VOID MapConsecutivePages(U64 *PML4, PTR VirtAddrStart, PTR PhysAddrStart,
+                           U64 NumPages, U64 Flags);
+
+/* Map a virtual page to a physical page
+ *
+ * Side effects:
+ *      - modifies the page tree in PML4VirtAddr
+ *      - physical memory may be allocated
+ *
+ * PML4VirtAddr: the virtual address of the page tree to map it in
+ * VirtAddr: the virtual address to map to PhysAddr
+ * PhysAddr: the physical address to map to VirtAddr
+ * Flags: the MMU flags to use
+ */
+VOID MapPage(U64 *PML4VirtAddr, PTR VirtAddr, PTR PhysAddr, U64 Flags);

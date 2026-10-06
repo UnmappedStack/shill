@@ -39,7 +39,7 @@ U64 *GetOrCreateNextLayer(U64 *ParentLayer, U64 Index) {
      * be used for further child tables. */
     if (!ParentLayer[Index]) {
         PTR ChildPhysAddr = AllocPhysPage();
-        CopyBuffer((VOID*)(ChildPhysAddr + GDirectMapOffset), 0, PAGE_SIZE);
+        SetBuffer((VOID*)(ChildPhysAddr + GDirectMapOffset), 0, PAGE_SIZE);
 
         ParentLayer[Index] = PAGE_TABLE_ENTRY(
                                  ChildPhysAddr,
@@ -178,8 +178,7 @@ VOID MapAllMemoryIntoVMemSpace(U64 *PML4) {
         PTR PhysAddr = Entries[Entry].PhysicalBase;
         PTR VirtAddr = Entries[Entry].PhysicalBase + GDirectMapOffset;
         ShillMemoryMapEntryType Type = Entries[Entry].Type;
-        if (Type == SHILL_MEMORY_INVALID ||
-                Type == SHILL_MEMORY_RESERVED) continue;
+        if (Type == SHILL_MEMORY_INVALID || Type == SHILL_MEMORY_RESERVED) continue;
         MapConsecutivePages(PML4, VirtAddr, PhysAddr, Entries[Entry].SizePages, PAGE_PRESENT | PAGE_WRITE);
     }
 }
@@ -196,7 +195,7 @@ PTR CreateNewAddressSpace(PTR DirectMapOffset, ShillPrekernelInfo *PrekernelInfo
     GDirectMapOffset = DirectMapOffset;
     PTR PML4PhysAddr = AllocPhysPage();
     U64 *PML4VirtAddr = (U64*) (PML4PhysAddr + GDirectMapOffset);
-    CopyBuffer(PML4VirtAddr, 0, PAGE_SIZE);
+    SetBuffer(PML4VirtAddr, 0, PAGE_SIZE);
 
     MapAllMemoryIntoVMemSpace(PML4VirtAddr);
     MapPrekernelIntoVirtualMemorySpace(PML4VirtAddr, PrekernelInfo);

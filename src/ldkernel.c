@@ -70,9 +70,16 @@ BOOL VerifyElf(ElfFileHeader *FileHeader) {
 
 /* Load the kernel ELF into memory (but not enter it)
  *
+ * Side effects:
+ *      - changes page tree
+ *      - allocates memory
+ *
  * KernelStart: The start of the raw kernel ELF in memory from a bootloader module
+ *
+ * Returns the entry point of the kernel
  */
-VOID LoadKernel(PTR PML4, PTR KernelStart) {
+PTR LoadKernel(PTR PML4, PTR KernelStart) {
+    ASSERT(KernelStart);
     ElfFileHeader *FileHeader = (ElfFileHeader*) KernelStart;
     if (!VerifyElf(FileHeader)) {
         WriteConsole("Invalid kernel binary\n");
@@ -82,21 +89,26 @@ VOID LoadKernel(PTR PML4, PTR KernelStart) {
     PTR Offset = FileHeader->ProgramHeaderOffset;
     for (USIZE Entry = 0; Entry < FileHeader->ProgramHeaderEntryCount; Entry++) {
         ElfProgramHeader *ProgramHeader = (ElfProgramHeader*) (KernelStart + Offset);
-        if (ProgramHeader->Type != ELF_LOADABLE && ProgramHeader->VirtualAddress) {
-
+        if (ProgramHeader->Type == ELF_LOADABLE && ProgramHeader->VirtualAddress) {
             USIZE Flags = PAGE_PRESENT |
-                (ProgramHeader->Flags & ELF_WRITABLE) ? PAGE_WRITE : 0;
+                ((ProgramHeader->Flags & ELF_WRITABLE) ? PAGE_WRITE : 0);
+            PTR NumPages = ALIGN_UP(ProgramHeader->SizeInMemory, PAGE_SIZE) / PAGE_SIZE;
             AllocVirtuallyConsecutivePages(
-                    (USIZE*) PML4, // page tree
+                    (USIZE*) PML4,
                     ProgramHeader->VirtualAddress,
-                    ALIGN_UP(ProgramHeader->SizeInMemory, PAGE_SIZE) / PAGE_SIZE, // # pages
+                    NumPages,
                     Flags);
 
+            INVALIDATE_RANGE(ProgramHeader->VirtualAddress, NumPages);
             CopyBuffer(
                     (U8*)ProgramHeader->VirtualAddress,
-                    KernelStart + ProgramHeader->Offset,
+                    (U8*)(KernelStart + ProgramHeader->Offset),
                     ProgramHeader->SizeInFile);
         }
         Offset += FileHeader->ProgramHeaderEntrySize;
     }
+
+    // TODO: create a new stack for the kernel instead of the one shill uses
+
+    return (PTR) FileHeader->Entry;
 }

@@ -11,5 +11,7 @@
 /* Load the kernel ELF into memory (but not enter it)
  *
  * KernelStart: The start of the raw kernel ELF in memory from a bootloader module
+ *
+ * Returns the entry point of the kernel
  */
-VOID LoadKernel(PTR PML4, PTR KernelStart);
+PTR LoadKernel(PTR PML4, PTR KernelStart);

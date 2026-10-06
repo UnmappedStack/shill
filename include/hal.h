@@ -37,3 +37,15 @@ VOID WriteSerial(CSTRING Str);
  * C: the ASCII character to write
  */
 VOID WriteSerialChar(CHAR C);
+
+/* Invalidate a range of TLB mappings
+ *
+ * Start: the virtual address to start from
+ * NumPages: the number of pages to invalidate
+ */
+#define INVALIDATE_RANGE(Start, NumPages) \
+    do { \
+        for (PTR Offset = 0; Offset < NumPages; Offset++) { \
+            INVALIDATE_ADDR(((PTR)Start + Offset * PAGE_SIZE)); \
+        } \
+    } while (0)
