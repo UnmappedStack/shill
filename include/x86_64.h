@@ -24,7 +24,7 @@
 
 #define SWITCH_STACK(STACK_TOP) \
     ASM("MOVQ %0, %%RSP\n" \
-        "MOVQ $0, %%RBP" : : "r"(STACK_TOP));
+        "MOVQ %0, %%RBP" : : "r"(STACK_TOP));
 
 #define INVALIDATE_ADDR(addr) \
     ASM("INVLPG (%0)" : : "r"(addr) : "memory");

@@ -28,7 +28,6 @@ typedef uintptr_t PTR;
 typedef int INT;
 #define VOID void
 
-// TODO: check if nullptr is defined then use that instead if so
 #define NULLPTR NULL
 #define NORETURN __attribute((noreturn))
 #define CONST const

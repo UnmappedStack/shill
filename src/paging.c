@@ -169,7 +169,7 @@ VOID MapPrekernelIntoVirtualMemorySpace(U64 *PML4, ShillPrekernelInfo *Prekernel
  * PML4: the virtual address of the root of the page tree to map into
  */
 VOID MapAllMemoryIntoVMemSpace(U64 *PML4) {
-    // TODO: we currently map into whatever direct map offset the bootloader
+    // NOTE: we currently map into whatever direct map offset the bootloader
     // gives us. for now this is fine but with stuff like multiboot later it'll
     // be an issue
     ShillMemoryMapEntry *Entries = GMemoryMap->Entries;

@@ -5,6 +5,7 @@
  */
 
 #define NANOPRINTF_IMPLEMENTATION
+#include <valloc.h>
 #include <ldkernel.h>
 #include <paging.h>
 #include <balloc.h>
@@ -14,6 +15,8 @@
 #include <api.h>
 #include <hal.h>
 #include <balloc.h>
+
+#define KERNEL_STACK_PAGES 20
 
 PTR GPML4 = 0;
 
@@ -77,13 +80,17 @@ VOID DumpMemoryMap(ShillMemoryMap *MemoryMap) {
  * arg1 and arg2 parameters depend on the bootloader protocol and will be
  * checked. */
 VOID BootEntry(PTR Arg1, PTR Arg2) {
+    /* can't be on the stack because we'll need
+     * these after switching to the kernel stack */
+    static PTR KernelEntry;
+    static ShillBootInfoBlock BootInfo = {0};
+
     InitSerial();
     WriteConsole("\nEntered Shill\n");
 
     BootProtocol Protocol = DetectBootProtocol(Arg1, Arg2);
     WriteConsole("Boot protocol detected: %s\n", StringifiedProtocols[Protocol]);
 
-    ShillBootInfoBlock BootInfo = {0};
     BootInfo.DirectMapOffset = ProtocolInterfaces[Protocol].GetDirectMapOffset(Arg1, Arg2);
     BootInfo.MemoryMap       = ProtocolInterfaces[Protocol].GetMemoryMap(Arg1, Arg2);
     InitBootstrapAllocator(BootInfo.MemoryMap);
@@ -108,10 +115,12 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     GPML4 = PML4Virt;
 
     WriteConsole("Loading kernel image...\n");
-    PTR KernelEntry = LoadKernel(PML4Virt, ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));
+    KernelEntry = LoadKernel(PML4Virt, ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));
 
     WriteConsole("Kernel image loaded, entering kernel at entry point %p...\n\n", KernelEntry);
+    PTR NewStackBottom = AllocateBackedPages(KERNEL_STACK_PAGES);
+    PTR NewStackTop = NewStackBottom + KERNEL_STACK_PAGES * PAGE_SIZE;
+    INVALIDATE_RANGE(NewStackBottom, KERNEL_STACK_PAGES);
+    SWITCH_STACK(NewStackTop);
     ((void (*)(ShillBootInfoBlock BootInfo, U32 Magic)) KernelEntry)(BootInfo, SHILL_MAGIC);
-
-    HaltDevice();
 }

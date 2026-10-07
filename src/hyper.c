@@ -37,10 +37,6 @@ STATIC UltraAttributeHeader *UltraGetAttributeOfType(UltraBootContext *Context, 
 /* Get the direct map offset (HHDM) the bootloder provides and return it.
  *
  * (!) Side effect: Modifies global DirectMapOffset with the found HHDM value
- *
- * TODO: This might end up changing once tables are re-mapped for standardisation
- * into the higher half? I assume this won't be needed though until multiboot gets
- * support.
  */
 PTR HyperGetDirectMapOffset(PTR Context, PTR Magic) {
     UNUSED(Magic);

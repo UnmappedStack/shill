@@ -15,6 +15,7 @@
 #define KGZ_PRINTF(...) WriteConsole(__VA_ARGS__)
 #include <kgz.h>
 
+#include <valloc.h>
 #include <api.h>
 #include <hal.h>
 #include <util.h>
@@ -158,8 +159,6 @@ PTR LoadKernel(PTR PML4, ShillModuleInfo Kernel) {
         }
         Offset += FileHeader->ProgramHeaderEntrySize;
     }
-
-    // TODO: create a new stack for the kernel instead of the one shill uses
 
     return (PTR) FileHeader->Entry;
 }

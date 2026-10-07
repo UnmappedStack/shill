@@ -34,7 +34,7 @@ module_string: "SHILL_KERNEL_IMAGE_START"
  - The IDT will be a null pointer
  - The GDT will be in an undefined state as you should switch to your own but it will be valid with at least a null section, kernel data section, and kernel code section
  - `rip` will be at the entry point of the kernel executable
- - `rsp` will point to the top of a fresh stack, `rbp` will point to the same value
+ - `rsp` will point to the top of a fresh stack, potentially except for a return frame to the prekernel which can be ignored. `rbp` will point to the same value
  - 4 level paging will be enabled by default, 5 level support is a TODO
 
 When your kernel is loaded, it will be passed two parameters:
