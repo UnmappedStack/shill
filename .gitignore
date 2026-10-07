@@ -1,6 +1,7 @@
 /shill
 /sysroot
 /testkernelbin
+/testkernelbin.gz
 
 # specific to hyper
 /hyper_install
