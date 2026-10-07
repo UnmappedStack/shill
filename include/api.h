@@ -8,6 +8,8 @@
 #include <types.h>
 #include <shill.h>
 
+#define KERNEL_STACK_PAGES (20) 
+
 typedef struct {
     PTR VirtualBase;
     PTR PhysicalBase;

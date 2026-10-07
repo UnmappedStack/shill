@@ -25,3 +25,7 @@ PTR AllocateVirtualPages(USIZE NumPages);
  * Returns the starting virtual address of the allocated memory
  */
 PTR AllocateBackedPages(USIZE NumPages);
+
+/* like AllocateBackedPages but the virtual memory its backed to is in the
+ * region for kernel stacks */
+PTR AllocateBackedStack(VOID);

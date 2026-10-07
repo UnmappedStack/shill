@@ -16,8 +16,6 @@
 #include <hal.h>
 #include <balloc.h>
 
-#define KERNEL_STACK_PAGES 20
-
 PTR GPML4 = 0;
 
 typedef enum {
@@ -118,7 +116,7 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     KernelEntry = LoadKernel(PML4Virt, ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));
 
     WriteConsole("Kernel image loaded, entering kernel at entry point %p...\n\n", KernelEntry);
-    PTR NewStackBottom = AllocateBackedPages(KERNEL_STACK_PAGES);
+    PTR NewStackBottom = AllocateBackedStack();
     PTR NewStackTop = NewStackBottom + KERNEL_STACK_PAGES * PAGE_SIZE;
     INVALIDATE_RANGE(NewStackBottom, KERNEL_STACK_PAGES);
     SWITCH_STACK(NewStackTop);

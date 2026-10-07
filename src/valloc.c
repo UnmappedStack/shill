@@ -8,10 +8,14 @@
 #include <paging.h>
 #include <util.h>
 #include <types.h>
+#include <api.h>
 
 // quite low in the lower half should be fine I think
 #define BUMP_START (0x4000)
 PTR VirtualBumpCurrent = BUMP_START;
+
+#define KERNEL_STACK_BUMP_START (0xFFFFFFFFFFFF0000LL)
+PTR VirtualStackBumpCurrent = KERNEL_STACK_BUMP_START;
 
 /* allocates NumPages virtual pages *but does not map them in*
  *
@@ -37,5 +41,23 @@ PTR AllocateVirtualPages(USIZE NumPages) {
 PTR AllocateBackedPages(USIZE NumPages) {
     PTR VirtAddr = AllocateVirtualPages(NumPages);
     AllocVirtuallyConsecutivePages((USIZE*)GPML4, VirtAddr, NumPages, PAGE_PRESENT | PAGE_WRITE);
+    return VirtAddr;
+}
+
+// TODO: might be better to just give AllocateBackedPages and AllocateVirtualPages
+// a Zone argument for where to allocate instead of a fully separate set of functions
+
+/* allocates virtual memory for one kernel stack of size KERNEL_STACK_PAGES */
+PTR AllocateStackVirtual(VOID) {
+    PTR Return = VirtualStackBumpCurrent;
+    VirtualStackBumpCurrent += KERNEL_STACK_PAGES * PAGE_SIZE;
+    return Return;
+}
+
+/* like AllocateBackedPages but the virtual memory its backed to is in the
+ * region for kernel stacks */
+PTR AllocateBackedStack(VOID) {
+    PTR VirtAddr = AllocateStackVirtual();
+    AllocVirtuallyConsecutivePages((USIZE*)GPML4, VirtAddr, KERNEL_STACK_PAGES, PAGE_PRESENT | PAGE_WRITE);
     return VirtAddr;
 }
