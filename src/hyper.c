@@ -120,7 +120,8 @@ ShillMemoryMap *HyperGetMemoryMap(PTR Context, PTR Magic) {
         HaltDevice();
     }
 
-    ShillMemoryMap *AbstractedMemoryMap = (ShillMemoryMap*) ((PTR)StoreAtEntry->PhysicalAddress + DirectMapOffset);
+    PTR StoreAtEntryPhysAddr = (PTR) StoreAtEntry->PhysicalAddress;
+    ShillMemoryMap *AbstractedMemoryMap = (ShillMemoryMap*) (StoreAtEntryPhysAddr + DirectMapOffset);
 
     /* remove the space we use for the AbstractedMemoryMap from the entry we
      * put it at so that the kernel won't try write over it later */
@@ -131,7 +132,16 @@ ShillMemoryMap *HyperGetMemoryMap(PTR Context, PTR Magic) {
      * map, yaey! */
     AbstractedMemoryMap->NumEntries = 0;
     for (USIZE Entry = 0; Entry < NumEntries; Entry++) {
-        // TODO: add in a prekernel-reclaimable section for the memory map region itself
+        if (MMap->Entries[Entry].PhysicalAddress == StoreAtEntry->PhysicalAddress) {
+            // this is the entry *after* where we put the memory map, so we
+            // want to first add in an extra prekernel reclaimable region for it
+            AbstractedMemoryMap->Entries[Entry].PhysicalBase = (PTR) StoreAtEntryPhysAddr;
+            AbstractedMemoryMap->Entries[Entry].SizePages = ALIGN_UP(BytesNeeded, PAGE_SIZE) / PAGE_SIZE;
+            AbstractedMemoryMap->Entries[Entry].Type = SHILL_MEMORY_PREBOOT_RECLAIMABLE;
+            NumEntries++;
+            Entry++;
+            // we can then continue with this actual entry
+        }
         AbstractedMemoryMap->Entries[Entry].PhysicalBase = MMap->Entries[Entry].PhysicalAddress;
         AbstractedMemoryMap->Entries[Entry].SizePages = ALIGN_DOWN(MMap->Entries[Entry].Size, PAGE_SIZE) / PAGE_SIZE;
         AbstractedMemoryMap->Entries[Entry].Type = HyperToShillMemoryMapType(MMap->Entries[Entry].Type);
