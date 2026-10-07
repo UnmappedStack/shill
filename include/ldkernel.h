@@ -6,12 +6,13 @@
  * Licence 2.0. See LICENSE in the root of the repository for more information.
  */
 
+#include <api.h>
 #include <types.h>
 
 /* Load the kernel ELF into memory (but not enter it)
  *
- * KernelStart: The start of the raw kernel ELF in memory from a bootloader module
+ * Kernel: The module of the raw kernel ELF in memory from a bootloader module
  *
  * Returns the entry point of the kernel
  */
-PTR LoadKernel(PTR PML4, PTR KernelStart);
+PTR LoadKernel(PTR PML4, ShillModuleInfo Kernel);

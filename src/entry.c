@@ -15,6 +15,8 @@
 #include <hal.h>
 #include <balloc.h>
 
+PTR GPML4 = 0;
+
 typedef enum {
     BOOT_PROTOCOL_HYPER,
 } BootProtocol;
@@ -103,6 +105,7 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
             PAGE_WRITE | PAGE_PRESENT);
     PTR PML4Virt = PML4 + BootInfo.DirectMapOffset;
     SWITCH_PAGE_TREE(PML4);
+    GPML4 = PML4Virt;
 
     WriteConsole("Loading kernel image...\n");
     PTR KernelEntry = LoadKernel(PML4Virt, ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));

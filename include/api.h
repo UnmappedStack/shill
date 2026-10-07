@@ -9,16 +9,21 @@
 #include <shill.h>
 
 typedef struct {
-    uintptr_t VirtualBase;
-    uintptr_t PhysicalBase;
-    uintptr_t SizeBytes;
+    PTR VirtualBase;
+    PTR PhysicalBase;
+    PTR SizeBytes;
 } ShillPrekernelInfo;
+
+typedef struct {
+    PTR Address;
+    PTR SizeBytes;
+} ShillModuleInfo;
 
 /* NOT to be used by the kernel, just some interfaces for Shill to abstract
  * stuff away nicely */
 typedef struct {
     PTR (*GetDirectMapOffset)(PTR, PTR);
-    PTR (*GetKernelImageStart)(PTR, PTR);
+    ShillModuleInfo (*GetKernelImageStart)(PTR, PTR);
     ShillMemoryMap *(*GetMemoryMap)(PTR, PTR);
     ShillPrekernelInfo (*GetPrekernelInfo)(PTR, PTR);
 } ProtocolInterface;

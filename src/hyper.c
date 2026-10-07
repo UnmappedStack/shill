@@ -146,7 +146,7 @@ ShillMemoryMap *HyperGetMemoryMap(PTR Context, PTR Magic) {
 }
 
 /* Find the kernel image in memory, from the bootloader's module for it */
-PTR HyperGetKernelImageStart(PTR Context, PTR Magic) {
+ShillModuleInfo HyperGetKernelImageStart(PTR Context, PTR Magic) {
     UNUSED(Magic);
     UltraBootContext *BootContext = (UltraBootContext*) Context;
 
@@ -158,7 +158,10 @@ PTR HyperGetKernelImageStart(PTR Context, PTR Magic) {
 
         UltraModuleInfoAttribute *Attribute = CONTAINER_OF(CurrentHeader, UltraModuleInfoAttribute, Header);
         if (CStringsAreEqual("SHILL_KERNEL_IMAGE_START", Attribute->Name)) {
-            return Attribute->Address + DirectMapOffset;
+            ShillModuleInfo Module = {0};
+            Module.Address = Attribute->Address + DirectMapOffset;
+            Module.SizeBytes = Attribute->Size;
+            return Module;
         }
        
 Skip:

@@ -23,6 +23,7 @@ fi
 
 cd testkernel && ./build.sh && cd ..
 cp testkernelbin sysroot/kernel
+gzip -c testkernelbin > sysroot/kernel.gz
 
 dd if=/dev/zero of=sysroot/efipartition.img count=100 bs=1M
 mkfs.fat sysroot/efipartition.img

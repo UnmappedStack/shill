@@ -9,6 +9,8 @@
 #include <types.h>
 #include <api.h>
 
+extern PTR GPML4;
+
 /* Creates a new address space and maps essential memory into it
  *
  * Side effects: writes DirectMapOffset to GDirectMapOffset global

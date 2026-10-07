@@ -6,7 +6,7 @@
 
 #include <api.h>
 PTR HyperGetDirectMapOffset(PTR Context, PTR Magic);
-PTR HyperGetKernelImageStart(PTR Context, PTR Magic);
+ShillModuleInfo HyperGetKernelImageStart(PTR Context, PTR Magic);
 ShillMemoryMap *HyperGetMemoryMap(PTR Context, PTR Magic);
 ShillPrekernelInfo HyperGetPrekernelInfo(PTR Context, PTR Magic);
 
