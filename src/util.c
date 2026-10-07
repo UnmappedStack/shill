@@ -6,6 +6,7 @@
  * Licence 2.0. See LICENSE in the root of the repository for more information.
  */
 
+#include <util.h>
 #include <printf.h>
 #include <types.h>
 
@@ -61,18 +62,34 @@ BOOL BuffersAreEqual(VOID *Buf1, VOID *Buf2, USIZE Length) {
 
 /* We need this because I'm stupid and I'm not using a cross compiler so GCC sometimes
  * complains without it... That's why it doesn't follow the usual naming scheme.
- * That's why its also quite unoptimised, not using rep movsb or whatever.
- * In the header file you can see its named CopyBuffer(). */
-VOID memset(VOID *Buf, U8 Val, USIZE NumBytes) {
-    for (USIZE Index = 0; Index < NumBytes; Index++) {
-        ((U8*)Buf)[Index] = Val;
+ */
+VOID *memset(VOID *Buf, U8 Val, USIZE NumBytes) {
+#if defined(__x86_64__)
+    if (NumBytes >= PAGE_SIZE * 2) {
+        __asm__ volatile("REP STOSB" : "+D"(Buf), "+c"(NumBytes) : "a"(Val) : "memory");
+        return Buf;
     }
+#endif
+    for (USIZE I = 0; I < NumBytes; I++)
+        ((U8*)Buf)[I] = Val;
+    return Buf;
 }
 
 /* memcpy style, copy NumBytes bytes from Source to Dest */
-VOID CopyBuffer(VOID *Dest, VOID *Source, USIZE NumBytes) {
-    // not well optimised but fine for now. TODO
-    for (USIZE Index = 0; Index < NumBytes; Index++) {
-        ((U8*)Dest)[Index] = ((U8*)Source)[Index];
+VOID *CopyBuffer(VOID *Dest, VOID *Source, USIZE NumBytes) {
+// rep movsb is faster for large buffers if its x86...
+#if defined(__x86_64__)
+    if (NumBytes >= PAGE_SIZE * 2) {
+        ASM("REP MOVSB"
+                         : "=D"(Dest), "=S"(Source), "=c"(NumBytes)
+                         : "D"(Dest), "S"(Source), "c"(NumBytes)
+                         : "memory");
+        return Dest;
     }
+#endif
+    // ...but it is actually faster to manually loop if its a relatively small memory buffer
+    for (USIZE I = 0; I < NumBytes; I++) {
+        ((uint8_t*)Dest)[I] = ((uint8_t*)Source)[I];
+    }
+    return Dest;
 }
