@@ -52,7 +52,7 @@ typedef struct {
 } ShillBootInfoBlock;
 ```
 
-The members listed above will be discussed now, and all structures can be found in `include/api.h` which will pretty much always be more up to date than this.
+The members listed above will be discussed now, and all structures can be found in `shared/shill.h` which will pretty much always be more up to date than this.
 
 ### `direct_map_offset`
 
@@ -95,4 +95,4 @@ typedef struct {
 } ShillMemoryMap;
 ```
 
-You can find the `ShillMemoryMapEntryType` enum in `include/api.h`. All physical base addresses will be page aligned, and all these structures will be stored in prekernel reclaimable memory.
+You can find the `ShillMemoryMapEntryType` enum in `shared/shill.h`. All physical base addresses will be page aligned, and all these structures will be stored in prekernel reclaimable memory.

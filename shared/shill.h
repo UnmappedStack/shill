@@ -28,6 +28,18 @@ typedef enum {
     SHILL_MEMORY_PREBOOT_RECLAIMABLE,
 } ShillMemoryMapEntryType;
 
+/* ftr this is *after decompression*, the compressed kernel image is not exposed
+ * to the kernel directly */
+typedef struct {
+    /* VIRTUAL address of the file. it is not contiguous in physical memory!
+     * the kernel should copy it to its own buffer before switching to its
+     * own page tree or use the same virtual address mappings for it as shill.
+     * TODO: contiguous bootstrap allocator mapping for this to be contiguous? */
+    uintptr_t VirtualBase;
+    size_t NumBytes;
+    uintptr_t EntryPoint;
+} KernelImage;
+
 typedef struct {
     uintptr_t PhysicalBase;
     uintptr_t SizePages;
@@ -44,4 +56,5 @@ typedef struct {
 typedef struct {
     uintptr_t DirectMapOffset;
     ShillMemoryMap *MemoryMap;
+    KernelImage KernelImage;
 } ShillBootInfoBlock;

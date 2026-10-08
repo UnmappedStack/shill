@@ -125,7 +125,7 @@ BOOL VerifyElf(ElfFileHeader *FileHeader) {
  *
  * Returns the entry point of the kernel
  */
-PTR LoadKernel(PTR PML4, ShillModuleInfo Kernel) {
+KernelImage LoadKernel(PTR PML4, ShillModuleInfo Kernel) {
     ASSERT(Kernel.Address);
 
     if (VerifyGZ(Kernel.Address)) {
@@ -160,5 +160,9 @@ PTR LoadKernel(PTR PML4, ShillModuleInfo Kernel) {
         Offset += FileHeader->ProgramHeaderEntrySize;
     }
 
-    return (PTR) FileHeader->Entry;
+    return (KernelImage) {
+        .VirtualBase = Kernel.Address,
+        .NumBytes    = Kernel.SizeBytes,
+        .EntryPoint  = (PTR) FileHeader->Entry,
+    };
 }

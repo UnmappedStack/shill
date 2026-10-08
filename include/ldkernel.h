@@ -15,4 +15,4 @@
  *
  * Returns the entry point of the kernel
  */
-PTR LoadKernel(PTR PML4, ShillModuleInfo Kernel);
+KernelImage LoadKernel(PTR PML4, ShillModuleInfo Kernel);

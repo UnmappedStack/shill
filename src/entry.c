@@ -113,7 +113,8 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     GPML4 = PML4Virt;
 
     WriteConsole("Loading kernel image...\n");
-    KernelEntry = LoadKernel(PML4Virt, ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));
+    BootInfo.KernelImage = LoadKernel(PML4Virt, ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));
+    KernelEntry = BootInfo.KernelImage.EntryPoint;
 
     WriteConsole("Kernel image loaded, entering kernel at entry point %p...\n\n", KernelEntry);
     PTR NewStackBottom = AllocateBackedPages(KERNEL_STACK_PAGES, VALLOC_ZONE_STACK);
