@@ -116,7 +116,7 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     KernelEntry = LoadKernel(PML4Virt, ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));
 
     WriteConsole("Kernel image loaded, entering kernel at entry point %p...\n\n", KernelEntry);
-    PTR NewStackBottom = AllocateBackedStack();
+    PTR NewStackBottom = AllocateBackedPages(KERNEL_STACK_PAGES, VALLOC_ZONE_STACK);
     PTR NewStackTop = NewStackBottom + KERNEL_STACK_PAGES * PAGE_SIZE;
     INVALIDATE_RANGE(NewStackBottom, KERNEL_STACK_PAGES);
     SWITCH_STACK(NewStackTop);
