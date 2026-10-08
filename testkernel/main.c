@@ -1,4 +1,5 @@
-/* Basic useless kernel for testing Shill
+/* Basic useless kernel for testing Shill. Largely based on the Hyper Bare Bones
+ * wiki article: https://osdev.wiki/wiki/Hyper_Bare_Bones
  * 
  * Copyright 2026 Jake Steinburger (UnmappedStack) under the Mozilla Public
  * Licence 2.0. See LICENSE in the root of the repository for more information.
@@ -45,6 +46,56 @@ static void serial_puts(const char *s) {
     }
 }
 
+void *memcpy(void *dest, const void *src, size_t n) {
+    __asm__ volatile("rep movsb"
+                     : "=D"(dest), "=S"(src), "=c"(n)
+                     : "D"(dest), "S"(src), "c"(n)
+                     : "memory");
+    return dest;
+}
+
+static void reverse(char str[], int length) {
+    int start = 0;
+    int end = length - 1;
+    while (start < end) {
+        char temp = str[start];
+        str[start] = str[end];
+        str[end] = temp;
+        start++;
+        end--;
+    }
+}
+
+static void uint64_to_hex_string_padded(uint64_t num, char *str) {
+    char buffer[17];
+    int index = 0;
+    if (num == 0) {
+        buffer[index++] = '0';
+    } else {
+        while (num > 0) {
+            uint8_t digit = num & 0xF;
+            if (digit < 10) {
+                buffer[index++] = '0' + digit;
+            } else {
+                buffer[index++] = 'A' + (digit - 10);
+            }
+            num >>= 4;
+        }
+    }
+    while (index < 16) buffer[index++] = '0';
+    buffer[index] = '\0';
+    reverse(buffer, index);
+    memcpy(str, buffer, 17);
+}
+
+static void putint(uint64_t value) {
+    char buf[64];
+    uint64_to_hex_string_padded(value, buf);
+    serial_puts("0x");
+    serial_puts(buf);
+    serial_puts("\n");
+}
+
 static void hcf(void) {
     for (;;)
         __asm__ volatile ("cli; hlt");
@@ -60,6 +111,11 @@ void _start(ShillBootInfoBlock boot_info, uint32_t magic) {
     } else {
         serial_puts("SHILL_MAGIC test fails, did we use something that's not shill?\n");
     }
+
+    serial_puts("Dump info from prekernel:\n");
+    serial_puts("   -> HHDM: "); putint(boot_info.DirectMapOffset);
+    serial_puts("   -> Memmap entries: "); putint(boot_info.MemoryMap->NumEntries);
+    serial_puts("   -> Kernel image addr: "); putint(boot_info.KernelImage.VirtualBase);
 
     hcf();
 }
