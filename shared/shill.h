@@ -57,4 +57,5 @@ typedef struct {
     uintptr_t DirectMapOffset;
     ShillMemoryMap *MemoryMap;
     KernelImage KernelImage;
+    uintptr_t RSDP;
 } ShillBootInfoBlock;

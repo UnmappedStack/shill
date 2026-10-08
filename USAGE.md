@@ -50,6 +50,7 @@ typedef struct {
     uintptr_t DirectMapOffset;
     ShillMemoryMap *MemoryMap;
     KernelImage KernelImage;
+    uintptr_t RDSP;
 } ShillBootInfoBlock;
 ```
 
@@ -111,3 +112,7 @@ typedef struct {
 ```
 
 If the kernel is provided as a GZ-compressed binary, this will be the *decompressed version*, not the compressed one provided to Shill.
+
+### RSDP
+
+The physical address of ACPI's RSDP pointer. On Multiboot1 systems on UEFI this may be 0, everywhere else it should have a valid value.

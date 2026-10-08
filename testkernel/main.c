@@ -116,6 +116,7 @@ void _start(ShillBootInfoBlock boot_info, uint32_t magic) {
     serial_puts("   -> HHDM: "); putint(boot_info.DirectMapOffset);
     serial_puts("   -> Memmap entries: "); putint(boot_info.MemoryMap->NumEntries);
     serial_puts("   -> Kernel image addr: "); putint(boot_info.KernelImage.VirtualBase);
+    serial_puts("   -> RSDP: "); putint(boot_info.RSDP);
 
     hcf();
 }

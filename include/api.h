@@ -28,4 +28,5 @@ typedef struct {
     ShillModuleInfo (*GetKernelImageStart)(PTR, PTR);
     ShillMemoryMap *(*GetMemoryMap)(PTR, PTR);
     ShillPrekernelInfo (*GetPrekernelInfo)(PTR, PTR);
+    PTR (*GetRSDP)(PTR, PTR);
 } ProtocolInterface;

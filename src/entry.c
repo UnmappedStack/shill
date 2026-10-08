@@ -32,6 +32,7 @@ ProtocolInterface ProtocolInterfaces[] = {
         HyperGetKernelImageStart,
         HyperGetMemoryMap,
         HyperGetPrekernelInfo,
+        HyperGetRSDP,
     },
 };
 
@@ -91,6 +92,7 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
 
     BootInfo.DirectMapOffset = ProtocolInterfaces[Protocol].GetDirectMapOffset(Arg1, Arg2);
     BootInfo.MemoryMap       = ProtocolInterfaces[Protocol].GetMemoryMap(Arg1, Arg2);
+    BootInfo.RSDP            = ProtocolInterfaces[Protocol].GetRSDP(Arg1, Arg2);
     InitBootstrapAllocator(BootInfo.MemoryMap);
 
     WriteConsole("Read boot info:\n"
