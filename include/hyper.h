@@ -10,6 +10,7 @@ ShillModuleInfo HyperGetKernelImageStart(PTR Context, PTR Magic);
 ShillMemoryMap *HyperGetMemoryMap(PTR Context, PTR Magic);
 ShillPrekernelInfo HyperGetPrekernelInfo(PTR Context, PTR Magic);
 PTR HyperGetRSDP(PTR Context, PTR Magic);
+ShillFramebuffersList *HyperGetFramebuffers(PTR Context, PTR Magic);
 
 // Copyright (c) 2022-2023 UltraOS
 // SPDX-License-Identifier: MIT

@@ -51,6 +51,25 @@ typedef struct {
     ShillMemoryMapEntry Entries[];
 } ShillMemoryMap;
 
+#define SHILL_FB_FORMAT_INVALID  0
+#define SHILL_FB_FORMAT_RGB888   1
+#define SHILL_FB_FORMAT_BGR888   2
+#define SHILL_FB_FORMAT_RGBX8888 3
+#define SHILL_FB_FORMAT_XRGB8888 4
+typedef struct {
+    uint32_t Width;
+    uint32_t Height;
+    uint32_t Pitch;
+    uint16_t BPP;
+    uint16_t Format;
+    uint64_t PhysicalAddress;
+} ShillFramebuffer;
+
+typedef struct {
+    size_t NumFramebuffers;
+    ShillFramebuffer Framebuffers[];
+} ShillFramebuffersList;
+
 /* The structure passed directly to the kernel containing the abstracted
  * away boot information */
 typedef struct {
@@ -58,4 +77,5 @@ typedef struct {
     ShillMemoryMap *MemoryMap;
     KernelImage KernelImage;
     uintptr_t RSDP;
+    ShillFramebuffersList *Framebuffers;
 } ShillBootInfoBlock;

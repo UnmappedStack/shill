@@ -4,6 +4,7 @@
  * Licence 2.0. See LICENSE in the root of the repository for more information. */
 
 #include <util.h>
+#include <valloc.h>
 #include <defs.h>
 #include <types.h>
 #include <hal.h>
@@ -202,4 +203,54 @@ PTR HyperGetRSDP(PTR Context, PTR Magic) {
     UltraAttributeHeader *Header = UltraGetAttributeOfType(BootContext, ULTRA_ATTRIBUTE_PLATFORM_INFO); 
     UltraPlatformInfoAttribute *PlatformInfo = CONTAINER_OF(Header, UltraPlatformInfoAttribute, Header);
     return PlatformInfo->RSDPAddress;
+}
+
+// ok good news and bad news:
+//  - bad news:  the number of framebuffers are not stored anywhere so we need
+//    to iterate them all to find the number of framebuffers (:pensive:)
+//  - good news: they're all contiguous in memory
+// (!) ALSO this will probably get bitrotted away at some point cos infy plans to change
+// the api for multiple framebuffers in ultra so yeah good to note
+USIZE HyperCountFramebuffers(UltraBootContext *Context) {
+    USIZE NumFramebuffers = 0;
+    UltraAttributeHeader *Header = UltraGetAttributeOfType(Context, ULTRA_ATTRIBUTE_FRAMEBUFFER_INFO);
+    for (USIZE Entry = 0; Entry < Context->AttributeCount; Entry++) {
+        if (Header->Type != ULTRA_ATTRIBUTE_FRAMEBUFFER_INFO) break;
+        NumFramebuffers++;
+        Header = ULTRA_NEXT_ATTRIBUTE(Header);
+    }
+    return NumFramebuffers;
+}
+
+/* get all framebuffers and create a ShillFramebuffersList for them.
+ *
+ * I don't love that we need to iterate over the framebuffers twice,
+ * but its necessary because Ultra boot protocol doesn't (yet) provide
+ * a count of total framebuffers. this might change at some point afaik
+ * though luckily */
+ShillFramebuffersList *HyperGetFramebuffers(PTR Context, PTR Magic) {
+    UNUSED(Magic);
+
+    UltraBootContext *BootContext = (UltraBootContext*) Context;
+    USIZE NumFramebuffers = HyperCountFramebuffers(BootContext);
+    USIZE BytesNeeded = sizeof(ShillFramebuffersList) + sizeof(ShillFramebuffer) * NumFramebuffers;
+    ShillFramebuffersList *Framebuffers = (VOID*) AllocateBackedPages(
+            ALIGN_UP(BytesNeeded, PAGE_SIZE) / PAGE_SIZE,
+            VALLOC_ZONE_DEFAULT // lower half in virtual memory
+    );
+
+    WriteConsole("Here\n");
+    UltraAttributeHeader *Header = UltraGetAttributeOfType(BootContext, ULTRA_ATTRIBUTE_FRAMEBUFFER_INFO);
+    for (USIZE Entry = 0; Entry < BootContext->AttributeCount; Entry++) {
+        if (Header->Type != ULTRA_ATTRIBUTE_FRAMEBUFFER_INFO) break;
+
+        // shill uses pretty much the same framebuffer api as ultra, so we can literally just copy it
+        ShillFramebuffer *NewFramebuffer = (ShillFramebuffer*)&CONTAINER_OF(Header, UltraFramebufferAttribute, Header)->FB;
+        Framebuffers->Framebuffers[Entry] = *NewFramebuffer;
+
+        Header = ULTRA_NEXT_ATTRIBUTE(Header);
+    }
+
+    Framebuffers->NumFramebuffers = NumFramebuffers;
+    return Framebuffers;
 }

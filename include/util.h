@@ -21,7 +21,7 @@
 #define ASSERT(X) \
     do { \
         if (!(X)) { \
-            WriteConsole("Assert failed: " STRINGIFY(X) "\n"); \
+            WriteConsole(__FILE__ ":%zu: Assert failed: " STRINGIFY(X) "\n", __LINE__); \
             HaltDevice(); \
         } \
     } while (0)
