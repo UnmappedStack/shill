@@ -4,6 +4,7 @@
  * Licence 2.0. See LICENSE in the root of the repository for more information. */
 
 #include <util.h>
+#include <paging.h>
 #include <valloc.h>
 #include <defs.h>
 #include <types.h>
@@ -239,7 +240,6 @@ ShillFramebuffersList *HyperGetFramebuffers(PTR Context, PTR Magic) {
             VALLOC_ZONE_DEFAULT // lower half in virtual memory
     );
 
-    WriteConsole("Here\n");
     UltraAttributeHeader *Header = UltraGetAttributeOfType(BootContext, ULTRA_ATTRIBUTE_FRAMEBUFFER_INFO);
     for (USIZE Entry = 0; Entry < BootContext->AttributeCount; Entry++) {
         if (Header->Type != ULTRA_ATTRIBUTE_FRAMEBUFFER_INFO) break;
@@ -247,6 +247,15 @@ ShillFramebuffersList *HyperGetFramebuffers(PTR Context, PTR Magic) {
         // shill uses pretty much the same framebuffer api as ultra, so we can literally just copy it
         ShillFramebuffer *NewFramebuffer = (ShillFramebuffer*)&CONTAINER_OF(Header, UltraFramebufferAttribute, Header)->FB;
         Framebuffers->Framebuffers[Entry] = *NewFramebuffer;
+        USIZE FbSize = NewFramebuffer->Width * NewFramebuffer->Height * NewFramebuffer->Pitch;
+        USIZE FbPages = ALIGN_UP(FbSize, PAGE_SIZE) / PAGE_SIZE;
+        MapConsecutivePages(
+                (USIZE*)GPML4,                                     /* page tree */
+                NewFramebuffer->PhysicalAddress + DirectMapOffset, /* virt addr */
+                NewFramebuffer->PhysicalAddress,                   /* phys addr */
+                FbPages,                                           /* size in pages */
+                PAGE_WRITE | PAGE_PRESENT | PAGE_WC);
+        INVALIDATE_RANGE(NewFramebuffer->PhysicalAddress + DirectMapOffset, FbPages);
 
         Header = ULTRA_NEXT_ATTRIBUTE(Header);
     }
