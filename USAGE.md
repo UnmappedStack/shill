@@ -153,3 +153,26 @@ Information such as the width, height, pitch, and bytes per pixel can be found f
 ```
 
 Where `X` typically refers to an alpha channel, and it determines the format of the pixel values you need to use. Finally, `PhysicalAddress` gives a physical address of the framebuffer which you can offset by the direct map offset to get the virtual address to write to.
+
+### Modules
+
+From the `Modules` entry of the boot info block, you can find this structure:
+
+```C
+typedef struct {
+    size_t NumModules;
+    ShillModule Modules[];
+} ShillModulesList;
+```
+
+There will be `NumModules` entries in the `Modules` field, each of the structure:
+
+```C
+typedef struct {
+    unsigned char Name[64];
+    size_t SizeBytes;
+    uintptr_t Address;
+} ShillModule;
+```
+
+Each module may be a compressed gzip (.gz) file. `SizeBytes` will refer to the *decompressed* size. The `Address` field will be the virtual address of the decompressed module data, which may or may not be physically contiguous (depending on whether it's originally compressed). The `Name` field will be whatever is provided in the bootloader's configuration script.
