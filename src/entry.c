@@ -76,6 +76,22 @@ VOID DumpMemoryMap(ShillMemoryMap *MemoryMap) {
     }
 }
 
+/* Reclaims all bootloader memory by simply marking bootloader reclaimable regions
+ * as free. This is possible because by this point everything should've already
+ * been moved to Shill's own structures, away from the bootloader's.
+ *
+ * (!) Side effects: writes to memory map
+ *
+ * MemoryMap: the memory map to modify
+ */
+VOID ReclaimBootloaderMemory(ShillMemoryMap *MemoryMap) {
+    for (USIZE Entry = 0; Entry < MemoryMap->NumEntries; Entry++) {
+        if (MemoryMap->Entries[Entry].Type != SHILL_MEMORY_BTLDR_RECLAIMABLE)
+            continue;
+        MemoryMap->Entries[Entry].Type = SHILL_MEMORY_USABLE; 
+    }
+}
+
 /* Entry point for the prekernel.
  *
  * arg1 and arg2 parameters depend on the bootloader protocol and will be
@@ -96,11 +112,6 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     BootInfo.MemoryMap       = ProtocolInterfaces[Protocol].GetMemoryMap(Arg1, Arg2);
     BootInfo.RSDP            = ProtocolInterfaces[Protocol].GetRSDP(Arg1, Arg2);
     InitBootstrapAllocator(BootInfo.MemoryMap);
-
-    WriteConsole("Read boot info:\n"
-                 "  -> Direct map offset (HHDM): %p\n",
-                 (VOID*) BootInfo.DirectMapOffset);
-    DumpMemoryMap(BootInfo.MemoryMap);
 
     WriteConsole("Switching to new page tree to replace bootloaders...\n");
     ShillPrekernelInfo PrekernelInfo = ProtocolInterfaces[Protocol].GetPrekernelInfo(Arg1, Arg2);
@@ -123,6 +134,9 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     WriteConsole("Loading kernel image...\n");
     BootInfo.KernelImage = LoadKernel(PML4Virt, ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));
     KernelEntry = BootInfo.KernelImage.EntryPoint;
+
+    ReclaimBootloaderMemory(BootInfo.MemoryMap);
+    DumpMemoryMap(BootInfo.MemoryMap);
 
     WriteConsole("Kernel image loaded, entering kernel at entry point %p...\n\n", KernelEntry);
     PTR NewStackBottom = AllocateBackedPages(KERNEL_STACK_PAGES, VALLOC_ZONE_STACK);

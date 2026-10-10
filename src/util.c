@@ -124,7 +124,6 @@ BOOL VerifyGZ(PTR Buffer) {
  * Returns a module of the decompressed data.
  */
 ShillModuleInfo DecompressGZ(ShillModuleInfo *ArchiveModule) {
-    WriteConsole("Decompressing GZ module... ");
     USIZE ResultSize, BufferSize;
     PTR DecompressedAddr = (PTR) KGZDecompress(
             (VOID*) ArchiveModule->Address,
@@ -134,6 +133,5 @@ ShillModuleInfo DecompressGZ(ShillModuleInfo *ArchiveModule) {
     ShillModuleInfo Decompressed;
     Decompressed.Address = DecompressedAddr;
     Decompressed.SizeBytes = ResultSize;
-    WriteConsole(" Ok\n");
     return Decompressed;
 }

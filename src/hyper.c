@@ -301,7 +301,6 @@ ShillModulesList *HyperGetModules(PTR Context, PTR Magic) {
             Bounds = DecompressGZ(&Bounds);
         }
         
-        WriteConsole("Found module: %s\n", ModuleInfo->Name);
         CopyString(Modules->Modules[Entry+Offset].Name, (CHAR*)ModuleInfo->Name);
         Modules->Modules[Entry+Offset].SizeBytes = Bounds.SizeBytes;
         Modules->Modules[Entry+Offset].Address   = Bounds.Address;
