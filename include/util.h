@@ -66,6 +66,9 @@ VOID *CopyBuffer(VOID *Dest, VOID *Source, USIZE NumBytes);
 /* memcpy style, copy string from Source to Dest */
 VOID *CopyString(CHAR *Dest, CHAR *Source);
 
+/* memmove style, like CopyBuffer but they may overlap */
+VOID *MoveBuffer(VOID *Dest, CONST VOID *Source, USIZE Bytes);
+
 /* Check if a file at some memory is GZ compressed
  *
  * Buffer: a pointer to the start of the buffer

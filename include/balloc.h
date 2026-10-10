@@ -32,3 +32,8 @@ VOID InitBootstrapAllocator(ShillMemoryMap *MemoryMap);
  *  Returns the physical address of the page allocated
  */
 PTR AllocPhysPage(VOID);
+
+/* Called when all bootstrap allocations are done and we can snap off the last
+ * region we've been allocating so that the whole thing isn't marked prekernel
+ * reclaimable */
+VOID FinishAllocations(VOID);

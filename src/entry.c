@@ -69,7 +69,8 @@ CSTRING StringifiedMemoryMapTypes[] = {
 VOID DumpMemoryMap(ShillMemoryMap *MemoryMap) {
     WriteConsole("  -> Memory map dump:\n");
     for (USIZE Entry = 0; Entry < MemoryMap->NumEntries; Entry++) {
-        WriteConsole("       %012p: %09zu pages, %s\n",
+        WriteConsole(" %zu->       0x%012p: %09zu pages, %s\n",
+                Entry,
                 MemoryMap->Entries[Entry].PhysicalBase,
                 MemoryMap->Entries[Entry].SizePages,
                 StringifiedMemoryMapTypes[MemoryMap->Entries[Entry].Type]);
@@ -136,12 +137,16 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     KernelEntry = BootInfo.KernelImage.EntryPoint;
 
     ReclaimBootloaderMemory(BootInfo.MemoryMap);
-    DumpMemoryMap(BootInfo.MemoryMap);
 
-    WriteConsole("Kernel image loaded, entering kernel at entry point %p...\n\n", KernelEntry);
     PTR NewStackBottom = AllocateBackedPages(KERNEL_STACK_PAGES, VALLOC_ZONE_STACK);
     PTR NewStackTop = NewStackBottom + KERNEL_STACK_PAGES * PAGE_SIZE;
     INVALIDATE_RANGE(NewStackBottom, KERNEL_STACK_PAGES);
+
+    FinishAllocations();
+    DumpMemoryMap(BootInfo.MemoryMap);
+    
+    WriteConsole("Kernel image loaded & everything ready, entering kernel at entry point %p...\n\n", KernelEntry);
+
     SWITCH_STACK(NewStackTop);
     ((void (*)(ShillBootInfoBlock BootInfo, U32 Magic)) KernelEntry)(BootInfo, SHILL_MAGIC);
 }

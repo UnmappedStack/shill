@@ -111,10 +111,10 @@ ShillMemoryMap *HyperGetMemoryMap(PTR Context, PTR Magic) {
     UltraAttributeHeader *MMapHeader = UltraGetAttributeOfType(BootContext, ULTRA_ATTRIBUTE_MEMORY_MAP); 
     UltraMemoryMapAttribute *MMap = CONTAINER_OF(MMapHeader, UltraMemoryMapAttribute, Header);
 
-    /* technically there could be up to 1 extra entry from splitting the
-     * entry where the memory map is stored */
+    /* technically there could be up to 2 extra entry from splitting the
+     * entry where the memory map is stored and from FinishAllocations() */
     USIZE NumEntries = ULTRA_MEMORY_MAP_ENTRY_COUNT(MMapHeader);
-    PTR BytesNeeded = (NumEntries + 1) * sizeof(ShillMemoryMapEntry) + sizeof(ShillMemoryMap);
+    PTR BytesNeeded = (NumEntries + 2) * sizeof(ShillMemoryMapEntry) + sizeof(ShillMemoryMap);
     UltraMemoryMapEntry *StoreAtEntry = HyperFindMemoryMapEntryLargeEnough(MMapHeader, BytesNeeded);
     if (!StoreAtEntry) {
         WriteConsole("Could not find a memory map entry large enough to store abstracted memory map!\n"

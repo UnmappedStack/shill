@@ -1,9 +1,8 @@
 /* Bootstrap allocator for the Shill prekernel.
  *
- * Nothing in the prekernel should
- * really need to be freed I figure, at least until the kernel reclaims it, so
- * I think it should be fine for it to just be a bump allocator from th
- * largest memory map region.
+ * Nothing in the prekernel should really need to be freed I figure, at least
+ * until the kernel reclaims it, so I think it should be fine for it to just
+ * be a bump allocator.
  * 
  * See include/balloc.h
  *
@@ -84,4 +83,49 @@ PTR AllocPhysPage(VOID) {
     }
 
     return BumpCurrentRegion->PhysicalBase + ((BumpCurrentOffset++) * PAGE_SIZE);
+}
+
+/* Called when all bootstrap allocations are done and we can snap off the last
+ * region we've been allocating so that the whole thing isn't marked prekernel
+ * reclaimable */
+VOID FinishAllocations(VOID) {
+    ASSERT(BumpCurrentRegion); // I'd be surprised if this fails lol
+
+    // find the index of the one we're on
+    USIZE CurrentIndex;
+    for (USIZE EntryIdx = 0; EntryIdx < GMemoryMap->NumEntries; EntryIdx++) {
+        if (&GMemoryMap->Entries[EntryIdx] != BumpCurrentRegion) continue;
+        CurrentIndex = EntryIdx;
+        goto Found;
+    }
+    WriteConsole("Tried FinishAllocations but got invalid BumpCurrentRegion\n");
+    HaltDevice();
+
+Found:
+    /* we should be making space for the extra entry in hyper.c or wherever the
+     * boot protocol specific stuff lives. TODO: maybe centralise it somewhere */
+    USIZE NextIndex = CurrentIndex + 1;
+    if (CurrentIndex != GMemoryMap->NumEntries) {
+        // Everything gets moved one entry forward to make space for the new entry
+        MoveBuffer(
+                &GMemoryMap->Entries[NextIndex + 1],
+                &GMemoryMap->Entries[NextIndex],
+                (GMemoryMap->NumEntries - NextIndex) * sizeof(ShillMemoryMapEntry)
+        );
+    }
+
+    GMemoryMap->NumEntries++;
+
+    USIZE PrevSize = GMemoryMap->Entries[CurrentIndex].SizePages;
+    GMemoryMap->Entries[CurrentIndex].SizePages = BumpCurrentOffset;
+    USIZE NewSize = GMemoryMap->Entries[CurrentIndex].SizePages;
+
+    GMemoryMap->Entries[NextIndex] = (ShillMemoryMapEntry) {
+        .PhysicalBase = GMemoryMap->Entries[CurrentIndex].PhysicalBase + NewSize * PAGE_SIZE,
+        .SizePages    = PrevSize - NewSize,
+        .Type         = SHILL_MEMORY_USABLE,
+    };
+
+    // AllocPhysPage will assert on this so if we try allocate again it'll fail now
+    BumpCurrentRegion = 0;
 }

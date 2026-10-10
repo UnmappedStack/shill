@@ -95,6 +95,28 @@ VOID *CopyBuffer(VOID *Dest, VOID *Source, USIZE NumBytes) {
     return Dest;
 }
 
+/* memmove style, like CopyBuffer but they may overlap */
+VOID *MoveBuffer(VOID *Dest, CONST VOID *Source, USIZE Bytes) {
+    if (Dest == Source) {
+        return Dest;
+    } else if ((PTR)Dest < (PTR)Source) {
+        return CopyBuffer(Dest, (VOID*)Source, Bytes);
+    } else if ((PTR)Dest > (PTR)Source) {
+        // copy in reverse
+        ASM("STD\n"
+            "REP MOVSB\n"
+            "CLD\n"
+            : "=D"(Dest), "=S"(Source), "=c"(Bytes)
+            : "D"((uintptr_t)Dest + Bytes - 1),
+              "S"((uintptr_t)Source + Bytes - 1), "c"(Bytes)
+            : "memory");
+        return Dest;
+    } else {
+        // unreachable
+        __builtin_unreachable();
+    }
+}
+
 /* memcpy style, copy string from Source to Dest */
 VOID *CopyString(CHAR *Dest, CHAR *Source) {
     USIZE Length = CStringLength((UBCHAR*)Source);
