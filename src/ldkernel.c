@@ -7,12 +7,6 @@
  */
 
 #define KGZ_IMPLEMENTATION
-#define KGZ_USE_OWN_MACROS
-#define KGZ_MALLOC(size) AllocateBackedPages(ALIGN_UP(size, PAGE_SIZE)/PAGE_SIZE, VALLOC_ZONE_DEFAULT)
-#define KGZ_FREE(ptr, size) ({})
-#define KGZ_MEMCPY(dst, src, n) CopyBuffer((VOID*)(dst), (VOID*)(src), (n))
-#define KGZ_MEMSET(ptr, val, size) SetBuffer((ptr), (val), (size))
-#define KGZ_PRINTF(...) WriteConsole(__VA_ARGS__)
 #include <kgz.h>
 
 #include <valloc.h>
@@ -53,42 +47,6 @@ typedef struct {
     U64 SizeInMemory;
     U64 Align;
 } __attribute__((packed)) ElfProgramHeader;
-
-/* Check if a file at some memory is GZ compressed
- *
- * Buffer: a pointer to the start of the buffer
- *
- * Returns TRUE if it is gzip compressed, otherwise FALSE
- */
-BOOL VerifyGZ(PTR Buffer) {
-    U8 *PBuf = (U8*) Buffer;
-    return (PBuf[0] == 0x1f && PBuf[1] == 0x8b);
-}
-
-/* Decompress a GZ archive
- *
- * Side effects:
- *      - Allocates memory
- *      - Maps into the page tree
- *
- * ArchiveModule: the module containing the size & address of the data to decompress
- *
- * Returns a module of the decompressed data.
- */
-ShillModuleInfo DecompressGZ(ShillModuleInfo *ArchiveModule) {
-    WriteConsole("GZ kernel compression detected, decompressing... ");
-    USIZE ResultSize, BufferSize;
-    PTR DecompressedAddr = (PTR) KGZDecompress(
-            (VOID*) ArchiveModule->Address,
-            ArchiveModule->SizeBytes,
-            &ResultSize, &BufferSize);
-
-    ShillModuleInfo Decompressed;
-    Decompressed.Address = DecompressedAddr;
-    Decompressed.SizeBytes = ResultSize;
-    WriteConsole(" Ok\n");
-    return Decompressed;
-}
 
 /* Check that an ELF header is valid to load
  *

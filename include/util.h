@@ -6,6 +6,7 @@
  * Licence 2.0. See LICENSE in the root of the repository for more information.
  */
 
+#include <api.h>
 #include <types.h>
 #include <printf.h>
 #include <hal.h>
@@ -61,3 +62,26 @@ BOOL BuffersAreEqual(VOID *Buf1, VOID *Buf2, USIZE Length);
 
 /* memcpy style, copy NumBytes bytes from Source to Dest */
 VOID *CopyBuffer(VOID *Dest, VOID *Source, USIZE NumBytes);
+
+/* memcpy style, copy string from Source to Dest */
+VOID *CopyString(CHAR *Dest, CHAR *Source);
+
+/* Check if a file at some memory is GZ compressed
+ *
+ * Buffer: a pointer to the start of the buffer
+ *
+ * Returns TRUE if it is gzip compressed, otherwise FALSE
+ */
+BOOL VerifyGZ(PTR Buffer);
+
+/* Decompress a GZ archive
+ *
+ * Side effects:
+ *      - Allocates memory
+ *      - Maps into the page tree
+ *
+ * ArchiveModule: the module containing the size & address of the data to decompress
+ *
+ * Returns a module of the decompressed data.
+ */
+ShillModuleInfo DecompressGZ(ShillModuleInfo *ArchiveModule);

@@ -6,6 +6,13 @@
  * comment after that is from the original KGZ library.
  */
 
+#define KGZ_USE_OWN_MACROS
+#define KGZ_MALLOC(size) AllocateBackedPages(ALIGN_UP(size, PAGE_SIZE)/PAGE_SIZE, VALLOC_ZONE_DEFAULT)
+#define KGZ_FREE(ptr, size) ({})
+#define KGZ_MEMCPY(dst, src, n) CopyBuffer((VOID*)(dst), (VOID*)(src), (n))
+#define KGZ_MEMSET(ptr, val, size) SetBuffer((ptr), (val), (size))
+#define KGZ_PRINTF(...) WriteConsole(__VA_ARGS__)
+
 #define KGZDecompress kgz_gzip_decompress
 #include <valloc.h>
 #include <printf.h>

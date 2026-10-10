@@ -34,6 +34,7 @@ ProtocolInterface ProtocolInterfaces[] = {
         HyperGetPrekernelInfo,
         HyperGetRSDP,
         HyperGetFramebuffers,
+        HyperGetModules,
     },
 };
 
@@ -117,6 +118,7 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
    
     // some other boot info needs to be abstracted only after the new page tree is set up...
     BootInfo.Framebuffers = ProtocolInterfaces[Protocol].GetFramebuffers(Arg1, Arg2);
+    BootInfo.Modules      = ProtocolInterfaces[Protocol].GetModules(Arg1, Arg2);
 
     WriteConsole("Loading kernel image...\n");
     BootInfo.KernelImage = LoadKernel(PML4Virt, ProtocolInterfaces[Protocol].GetKernelImageStart(Arg1, Arg2));

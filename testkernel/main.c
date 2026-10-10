@@ -127,6 +127,8 @@ void _start(ShillBootInfoBlock boot_info, uint32_t magic) {
     serial_puts("   -> Memmap entries: "); putint(boot_info.MemoryMap->NumEntries);
     serial_puts("   -> Kernel image addr: "); putint(boot_info.KernelImage.VirtualBase);
     serial_puts("   -> RSDP: "); putint(boot_info.RSDP);
+    serial_puts("   -> Num modules: "); putint(boot_info.Modules->NumModules);
+    serial_puts("   -> Num framebuffers: "); putint(boot_info.Framebuffers->NumFramebuffers);
 
     if (!boot_info.Framebuffers->NumFramebuffers) {
         serial_puts("No framebuffer detected!\n");
@@ -145,6 +147,13 @@ void _start(ShillBootInfoBlock boot_info, uint32_t magic) {
         for (int y = 0; y < 50; y++) {
             draw_pixel(x, y, 0xFFFF0000);
         }
+    }
+
+    for (int i = 0; i < boot_info.Modules->NumModules; i++) {
+        serial_puts("found module '");
+        serial_puts(boot_info.Modules->Modules[i].Name);
+        serial_puts("' of contents:\n   ");
+        serial_puts((char*)boot_info.Modules->Modules[i].Address);
     }
 
     hcf();

@@ -70,6 +70,17 @@ typedef struct {
     ShillFramebuffer Framebuffers[];
 } ShillFramebuffersList;
 
+typedef struct {
+    unsigned char Name[64];
+    size_t SizeBytes;
+    uintptr_t Address;
+} ShillModule;
+
+typedef struct {
+    size_t NumModules;
+    ShillModule Modules[];
+} ShillModulesList;
+
 /* The structure passed directly to the kernel containing the abstracted
  * away boot information */
 typedef struct {
@@ -78,4 +89,5 @@ typedef struct {
     KernelImage KernelImage;
     uintptr_t RSDP;
     ShillFramebuffersList *Framebuffers;
+    ShillModulesList *Modules;
 } ShillBootInfoBlock;

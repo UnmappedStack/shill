@@ -16,6 +16,8 @@ typedef struct {
     PTR SizeBytes;
 } ShillPrekernelInfo;
 
+// NOT the kind of module that's passed to the kernel. I should
+// probably name this more aptly... (TODO)
 typedef struct {
     PTR Address;
     PTR SizeBytes;
@@ -30,4 +32,5 @@ typedef struct {
     ShillPrekernelInfo (*GetPrekernelInfo)(PTR, PTR);
     PTR (*GetRSDP)(PTR, PTR);
     ShillFramebuffersList *(*GetFramebuffers)(PTR, PTR);
+    ShillModulesList *(*GetModules)(PTR, PTR);
 } ProtocolInterface;

@@ -6,6 +6,7 @@
  * Licence 2.0. See LICENSE in the root of the repository for more information.
  */
 
+#include <kgz.h>
 #include <util.h>
 #include <printf.h>
 #include <types.h>
@@ -92,4 +93,47 @@ VOID *CopyBuffer(VOID *Dest, VOID *Source, USIZE NumBytes) {
         ((uint8_t*)Dest)[I] = ((uint8_t*)Source)[I];
     }
     return Dest;
+}
+
+/* memcpy style, copy string from Source to Dest */
+VOID *CopyString(CHAR *Dest, CHAR *Source) {
+    USIZE Length = CStringLength((UBCHAR*)Source);
+    CopyBuffer(Dest, Source, Length);
+    return Dest;
+}
+
+/* Check if a file at some memory is GZ compressed
+ *
+ * Buffer: a pointer to the start of the buffer
+ *
+ * Returns TRUE if it is gzip compressed, otherwise FALSE
+ */
+BOOL VerifyGZ(PTR Buffer) {
+    U8 *PBuf = (U8*) Buffer;
+    return (PBuf[0] == 0x1f && PBuf[1] == 0x8b);
+}
+
+/* Decompress a GZ archive
+ *
+ * Side effects:
+ *      - Allocates memory
+ *      - Maps into the page tree
+ *
+ * ArchiveModule: the module containing the size & address of the data to decompress
+ *
+ * Returns a module of the decompressed data.
+ */
+ShillModuleInfo DecompressGZ(ShillModuleInfo *ArchiveModule) {
+    WriteConsole("Decompressing GZ module... ");
+    USIZE ResultSize, BufferSize;
+    PTR DecompressedAddr = (PTR) KGZDecompress(
+            (VOID*) ArchiveModule->Address,
+            ArchiveModule->SizeBytes,
+            &ResultSize, &BufferSize);
+
+    ShillModuleInfo Decompressed;
+    Decompressed.Address = DecompressedAddr;
+    Decompressed.SizeBytes = ResultSize;
+    WriteConsole(" Ok\n");
+    return Decompressed;
 }

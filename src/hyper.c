@@ -206,21 +206,22 @@ PTR HyperGetRSDP(PTR Context, PTR Magic) {
     return PlatformInfo->RSDPAddress;
 }
 
-// ok good news and bad news:
-//  - bad news:  the number of framebuffers are not stored anywhere so we need
-//    to iterate them all to find the number of framebuffers (:pensive:)
-//  - good news: they're all contiguous in memory
-// (!) ALSO this will probably get bitrotted away at some point cos infy plans to change
-// the api for multiple framebuffers in ultra so yeah good to note
-USIZE HyperCountFramebuffers(UltraBootContext *Context) {
-    USIZE NumFramebuffers = 0;
-    UltraAttributeHeader *Header = UltraGetAttributeOfType(Context, ULTRA_ATTRIBUTE_FRAMEBUFFER_INFO);
+/* count the number of attributes of a specific type
+ *
+ * Context: the Ultra boot protocol context to check from
+ * Type: the type of attribute to count
+ *
+ * Returns the number of attributes of type Type
+ */
+USIZE HyperCountAttributesOfType(UltraBootContext *Context, U32 Type) {
+    USIZE NumAttributes = 0;
+    UltraAttributeHeader *Header = UltraGetAttributeOfType(Context, Type);
     for (USIZE Entry = 0; Entry < Context->AttributeCount; Entry++) {
-        if (Header->Type != ULTRA_ATTRIBUTE_FRAMEBUFFER_INFO) break;
-        NumFramebuffers++;
+        if (Header->Type != Type) break;
+        NumAttributes++;
         Header = ULTRA_NEXT_ATTRIBUTE(Header);
     }
-    return NumFramebuffers;
+    return NumAttributes;
 }
 
 /* get all framebuffers and create a ShillFramebuffersList for them.
@@ -233,7 +234,7 @@ ShillFramebuffersList *HyperGetFramebuffers(PTR Context, PTR Magic) {
     UNUSED(Magic);
 
     UltraBootContext *BootContext = (UltraBootContext*) Context;
-    USIZE NumFramebuffers = HyperCountFramebuffers(BootContext);
+    USIZE NumFramebuffers = HyperCountAttributesOfType(BootContext, ULTRA_ATTRIBUTE_FRAMEBUFFER_INFO);
     USIZE BytesNeeded = sizeof(ShillFramebuffersList) + sizeof(ShillFramebuffer) * NumFramebuffers;
     ShillFramebuffersList *Framebuffers = (VOID*) AllocateBackedPages(
             ALIGN_UP(BytesNeeded, PAGE_SIZE) / PAGE_SIZE,
@@ -262,4 +263,53 @@ ShillFramebuffersList *HyperGetFramebuffers(PTR Context, PTR Magic) {
 
     Framebuffers->NumFramebuffers = NumFramebuffers;
     return Framebuffers;
+}
+
+/* get all modules (except for the one containing the kernel binary) and decompress
+ * it if necessary, returning a ShillModulesList */
+ShillModulesList *HyperGetModules(PTR Context, PTR Magic) {
+    UNUSED(Magic);
+
+    UltraBootContext *BootContext = (UltraBootContext*) Context;
+    USIZE NumModules = HyperCountAttributesOfType(BootContext, ULTRA_ATTRIBUTE_MODULE_INFO);
+    ASSERT(NumModules >= 1 && "you probably didn't give a module for the kernel image");
+
+    USIZE BytesNeeded = sizeof(ShillModulesList) + sizeof(ShillModule) * (NumModules-1);
+    ShillModulesList *Modules = (VOID*) AllocateBackedPages(
+            ALIGN_UP(BytesNeeded, PAGE_SIZE) / PAGE_SIZE,
+            VALLOC_ZONE_DEFAULT // lower half in virtual memory
+    );
+
+    UltraAttributeHeader *Header = UltraGetAttributeOfType(BootContext, ULTRA_ATTRIBUTE_MODULE_INFO);
+    INT Offset = 0;
+    for (USIZE Entry = 0; Entry < BootContext->AttributeCount; Entry++) {
+        if (Header->Type != ULTRA_ATTRIBUTE_MODULE_INFO) break;
+        UltraModuleInfoAttribute *ModuleInfo = CONTAINER_OF(Header, UltraModuleInfoAttribute, Header);
+
+        if (CStringsAreEqual("SHILL_KERNEL_IMAGE_START", ModuleInfo->Name)) {
+            if (Offset == -1) {
+                WriteConsole("Multiple modules referencing the kernel binary found!\n");
+                HaltDevice();
+            }
+            Offset = -1;
+            Header = ULTRA_NEXT_ATTRIBUTE(Header);
+            continue;
+        }
+
+        ShillModuleInfo Bounds = {ModuleInfo->Address + DirectMapOffset, ModuleInfo->Size};
+        if (VerifyGZ(Bounds.Address)) {
+            Bounds = DecompressGZ(&Bounds);
+        }
+        
+        WriteConsole("Found module: %s\n", ModuleInfo->Name);
+        CopyString(Modules->Modules[Entry+Offset].Name, (CHAR*)ModuleInfo->Name);
+        Modules->Modules[Entry+Offset].SizeBytes = Bounds.SizeBytes;
+        Modules->Modules[Entry+Offset].Address   = Bounds.Address;
+
+        Header = ULTRA_NEXT_ATTRIBUTE(Header);
+    }
+    ASSERT(Offset == -1);
+
+    Modules->NumModules = NumModules - 1;
+    return Modules;
 }
