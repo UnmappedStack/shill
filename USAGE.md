@@ -51,6 +51,7 @@ typedef struct {
     ShillMemoryMap *MemoryMap;
     KernelImage KernelImage;
     uintptr_t RDSP;
+    ShillFramebuffersList *Framebuffers;
 } ShillBootInfoBlock;
 ```
 
@@ -116,3 +117,39 @@ If the kernel is provided as a GZ-compressed binary, this will be the *decompres
 ### RSDP
 
 The physical address of ACPI's RSDP pointer. On Multiboot1 systems on UEFI this may be 0, everywhere else it should have a valid value.
+
+### Framebuffers
+
+From the `Framebuffers` entry of the boot info block, you can find this structure:
+
+```C
+typedef struct {
+    size_t NumFramebuffers;
+    ShillFramebuffer Framebuffers[];
+} ShillFramebuffersList;
+```
+
+There will be `NumFramebuffers` entries in `Framebuffers`, each of which takes the following structure:
+
+```C
+typedef struct {
+    uint32_t Width;
+    uint32_t Height;
+    uint32_t Pitch;
+    uint16_t BPP;
+    uint16_t Format;
+    uint64_t PhysicalAddress;
+} ShillFramebuffer;
+```
+
+Information such as the width, height, pitch, and bytes per pixel can be found from the first 4 fields. Format will contain one of these values:
+
+```C
+#define SHILL_FB_FORMAT_INVALID  0
+#define SHILL_FB_FORMAT_RGB888   1
+#define SHILL_FB_FORMAT_BGR888   2
+#define SHILL_FB_FORMAT_RGBX8888 3
+#define SHILL_FB_FORMAT_XRGB8888 4
+```
+
+Where `X` typically refers to an alpha channel, and it determines the format of the pixel values you need to use. Finally, `PhysicalAddress` gives a physical address of the framebuffer which you can offset by the direct map offset to get the virtual address to write to.
