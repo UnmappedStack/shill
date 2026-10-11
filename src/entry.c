@@ -12,20 +12,29 @@
 #include <ldkernel.h>
 #include <paging.h>
 #include <balloc.h>
-#include <hyper.h>
 #include <types.h>
 #include <api.h>
 #include <hal.h>
 #include <balloc.h>
 
+#include <hyper.h>
+#include <limine.h>
+#include <stubs.h>
+
+// for detecting if we're using limine boot protocol
+__attribute__((used, section(".limine_requests")))
+STATIC volatile U64 LimineBaseRevision[] = LIMINE_BASE_REVISION(0);
+
 PTR GPML4 = 0;
 
 typedef enum {
     BOOT_PROTOCOL_HYPER,
+    BOOT_PROTOCOL_LIMINE,
 } BootProtocol;
 
 CSTRING StringifiedProtocols[] = {
     "Hyper Boot Protocol",
+    "Limine Boot Protocol",
 };
 
 ProtocolInterface ProtocolInterfaces[] = {
@@ -38,12 +47,24 @@ ProtocolInterface ProtocolInterfaces[] = {
         HyperGetFramebuffers,
         HyperGetModules,
     },
+    [BOOT_PROTOCOL_LIMINE] = {
+        StubGetDirectMapOffset,
+        StubGetKernelImageStart,
+        StubGetMemoryMap,
+        StubGetPrekernelInfo,
+        StubGetRSDP,
+        StubGetFramebuffers,
+        StubGetModules,
+    },
 };
 
 /* Detect the boot protocol used from the two arguments which the bootloader
  * passes (or may not pass...) */
 BootProtocol DetectBootProtocol(PTR Arg1, PTR Arg2) {
-    if (Arg1 && Arg2 == ULTRA_MAGIC) return BOOT_PROTOCOL_HYPER;
+    if (Arg1 && Arg2 == ULTRA_MAGIC)
+        return BOOT_PROTOCOL_HYPER;
+    if (LIMINE_BASE_REVISION_SUPPORTED(LimineBaseRevision))
+        return BOOT_PROTOCOL_LIMINE;
 
     WriteSerial("No valid boot protocol detected, halting\n");
     HaltDevice();

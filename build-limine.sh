@@ -6,6 +6,9 @@ set -e
 
 mkdir -p sysroot
 mkdir -p sysroot/boot
+cp "media/bg.jpg" sysroot
+./build.sh # build shill
+cp shill sysroot
 
 if [ ! -d "limine-binary" ]; then
     curl -L https://github.com/Limine-Bootloader/Limine/releases/latest/download/limine-binary.tar.gz | gunzip | tar -xf -
