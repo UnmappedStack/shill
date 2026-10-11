@@ -52,6 +52,8 @@ typedef struct {
     KernelImage KernelImage;
     uintptr_t RDSP;
     ShillFramebuffersList *Framebuffers;
+    ShillModulesList *Modules;
+    uintptr_t PFNDB;
 } ShillBootInfoBlock;
 ```
 
@@ -176,3 +178,11 @@ typedef struct {
 ```
 
 Each module may be a compressed gzip (.gz) file. `SizeBytes` will refer to the *decompressed* size. The `Address` field will be the virtual address of the decompressed module data, which may or may not be physically contiguous (depending on whether it's originally compressed). The `Name` field will be whatever is provided in the bootloader's configuration script.
+
+### PFNDB
+
+The `PFNDB` entry of the boot info block will be the virtual address of the PFNDB/`struct page`/`page_t`/however you refer to it. All usable and prekernel reclaimable memory map entries will have physically backed PFNDB entries, all other entry types are undefined as to whether they are physically backed. It is physically sparse.
+
+All PFNDB entries will be one `uintptr_t` in size. This is done because it enforces a memdesc-style PFNDB scheme, in which each entry is just a pointer to the actual entry elsewhere in memory, meaning just because some entries need extra fields, not every single entry is forced to waste that space too.
+
+The PFNDB will be stored physically in prekernel reclaimable memory and will be virtually between the end of the HHDM region and the start of the kernel binary.
