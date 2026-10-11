@@ -94,7 +94,7 @@ VOID FinishAllocations(VOID) {
     // find the index of the one we're on
     USIZE CurrentIndex;
     for (USIZE EntryIdx = 0; EntryIdx < GMemoryMap->NumEntries; EntryIdx++) {
-        if (GMemoryMap->Entries[EntryIdx].Type == SHILL_MEMORY_KERNEL_BINARY) {
+        if (GMemoryMap->Entries[EntryIdx].Type == SHILL_MEMORY_PREKERNEL_BINARY) {
             // the kernel is free to use it for whatever cos the prekernel
             // will not be in use anymore
             GMemoryMap->Entries[EntryIdx].Type = SHILL_MEMORY_USABLE;

@@ -64,7 +64,7 @@ CSTRING StringifiedMemoryMapTypes[] = {
     [SHILL_MEMORY_BTLDR_RECLAIMABLE  ] = "Bootloader reclaimable",
     [SHILL_MEMORY_MODULE             ] = "Bootloader module", 
     [SHILL_MEMORY_KERNEL_STACK       ] = "Kernel stack",
-    [SHILL_MEMORY_KERNEL_BINARY      ] = "Kernel binary", 
+    [SHILL_MEMORY_PREKERNEL_BINARY   ] = "Kernel binary", 
     [SHILL_MEMORY_PREBOOT_RECLAIMABLE] = "Prekernel reclaimable",
 };
 

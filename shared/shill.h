@@ -21,10 +21,10 @@ typedef enum {
      * it should be reclaimed by the prekernel, only prekernel
      * reclaimable memory should still exist */
     SHILL_MEMORY_BTLDR_RECLAIMABLE,
+    SHILL_MEMORY_PREKERNEL_BINARY,
 
     SHILL_MEMORY_MODULE, 
     SHILL_MEMORY_KERNEL_STACK,
-    SHILL_MEMORY_KERNEL_BINARY,
     SHILL_MEMORY_PREBOOT_RECLAIMABLE,
 } ShillMemoryMapEntryType;
 
