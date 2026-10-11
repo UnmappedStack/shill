@@ -23,7 +23,7 @@
 
 // for detecting if we're using limine boot protocol
 __attribute__((used, section(".limine_requests")))
-STATIC volatile U64 LimineBaseRevision[] = LIMINE_BASE_REVISION(0);
+STATIC volatile U64 LimineBaseRevision[] = LIMINE_BASE_REVISION(6);
 
 PTR GPML4 = 0;
 
@@ -48,13 +48,13 @@ ProtocolInterface ProtocolInterfaces[] = {
         HyperGetModules,
     },
     [BOOT_PROTOCOL_LIMINE] = {
-        StubGetDirectMapOffset,
-        StubGetKernelImageStart,
-        StubGetMemoryMap,
-        StubGetPrekernelInfo,
-        StubGetRSDP,
-        StubGetFramebuffers,
-        StubGetModules,
+        LimineGetDirectMapOffset,
+        LimineGetKernelImageStart,
+        LimineGetMemoryMap,
+        LimineGetPrekernelInfo,
+        LimineGetRSDP,
+        LimineGetFramebuffers,
+        LimineGetModules,
     },
 };
 

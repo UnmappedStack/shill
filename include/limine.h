@@ -8,12 +8,24 @@
  * See src/limine.c
  */
 
+#include <shill.h>
+#include <api.h>
+#include <types.h>
+
+PTR LimineGetDirectMapOffset(PTR Context, PTR Magic);
+ShillModuleInfo LimineGetKernelImageStart(PTR Context, PTR Magic);
+ShillMemoryMap *LimineGetMemoryMap(PTR Context, PTR Magic);
+ShillPrekernelInfo LimineGetPrekernelInfo(PTR Context, PTR Magic);
+PTR LimineGetRSDP(PTR Context, PTR Magic);
+ShillFramebuffersList *LimineGetFramebuffers(PTR Context, PTR Magic);
+ShillModulesList *LimineGetModules(PTR Context, PTR Magic);
+
 #define LIMINE_REQUEST(Name, RequestType, Tag) \
     __attribute__((used, section(".limine_requests"))) \
-    static volatile limine_##RequestType##_request Name = { \
+    static volatile struct limine_##RequestType##_request Name = { \
         .id = Tag, \
         .revision = 0, \
-        .response = {0} \
+        .Response = 0 \
     }
 
 /* SPDX-License-Identifier: 0BSD */
@@ -162,13 +174,13 @@ struct limine_stack_size_request {
 
 struct limine_hhdm_response {
     uint64_t revision;
-    uint64_t offset;
+    uint64_t Offset;
 };
 
 struct limine_hhdm_request {
     uint64_t id[4];
     uint64_t revision;
-    LIMINE_PTR(struct limine_hhdm_response *) response;
+    LIMINE_PTR(struct limine_hhdm_response *) Response;
 };
 
 /* Framebuffer */
