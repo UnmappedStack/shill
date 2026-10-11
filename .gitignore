@@ -8,3 +8,5 @@
 /image.iso
 /BOOTX64.EFI
 
+# specific to limine
+/limine-binary
