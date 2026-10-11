@@ -9,6 +9,8 @@
 #include <api.h>
 #include <types.h>
 
+extern PTR KernelBinaryStart;
+
 /* Load the kernel ELF into memory (but not enter it)
  *
  * Kernel: The module of the raw kernel ELF in memory from a bootloader module

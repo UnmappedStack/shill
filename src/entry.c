@@ -5,11 +5,13 @@
  */
 
 #define NANOPRINTF_IMPLEMENTATION
+#include <printf.h>
+
 #include <valloc.h>
+#include <pfndb.h>
 #include <ldkernel.h>
 #include <paging.h>
 #include <balloc.h>
-#include <printf.h>
 #include <hyper.h>
 #include <types.h>
 #include <api.h>
@@ -69,8 +71,7 @@ CSTRING StringifiedMemoryMapTypes[] = {
 VOID DumpMemoryMap(ShillMemoryMap *MemoryMap) {
     WriteConsole("  -> Memory map dump:\n");
     for (USIZE Entry = 0; Entry < MemoryMap->NumEntries; Entry++) {
-        WriteConsole(" %zu->       0x%012p: %09zu pages, %s\n",
-                Entry,
+        WriteConsole("       0x%012p: %09zu pages, %s\n",
                 MemoryMap->Entries[Entry].PhysicalBase,
                 MemoryMap->Entries[Entry].SizePages,
                 StringifiedMemoryMapTypes[MemoryMap->Entries[Entry].Type]);
@@ -142,6 +143,7 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     PTR NewStackTop = NewStackBottom + KERNEL_STACK_PAGES * PAGE_SIZE;
     INVALIDATE_RANGE(NewStackBottom, KERNEL_STACK_PAGES);
 
+    BootInfo.PFNDB = BootstrapPFNDB(BootInfo.MemoryMap, BootInfo.DirectMapOffset);
     FinishAllocations();
     DumpMemoryMap(BootInfo.MemoryMap);
     

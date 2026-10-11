@@ -90,4 +90,5 @@ typedef struct {
     uintptr_t RSDP;
     ShillFramebuffersList *Framebuffers;
     ShillModulesList *Modules;
+    uintptr_t PFNDB;
 } ShillBootInfoBlock;

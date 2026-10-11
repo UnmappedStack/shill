@@ -6,6 +6,14 @@
  * Licence 2.0. See LICENSE in the root of the repository for more information.
  */
 
+/* TODO: make sure the kernel is being loaded *lower* than the prekernel, not
+ * overlapping or above it! (not allowing being above it is necessary for the
+ * pfndb boostrap)
+ *
+ * I haven't tested, but I would assume that right now loading the kernel too high
+ * would probably fuck things up silently...
+ */
+
 #define KGZ_IMPLEMENTATION
 #include <kgz.h>
 
@@ -16,6 +24,8 @@
 #include <printf.h>
 #include <paging.h>
 #include <ldkernel.h>
+
+PTR KernelBinaryStart = 0;
 
 #define ELF_LOADABLE (1)
 #define ELF_WRITABLE (2)
@@ -100,6 +110,12 @@ KernelImage LoadKernel(PTR PML4, ShillModuleInfo Kernel) {
     for (USIZE Entry = 0; Entry < FileHeader->ProgramHeaderEntryCount; Entry++) {
         ElfProgramHeader *ProgramHeader = (ElfProgramHeader*) (Kernel.Address + Offset);
         if (ProgramHeader->Type == ELF_LOADABLE && ProgramHeader->VirtualAddress) {
+            if (!KernelBinaryStart || ProgramHeader->VirtualAddress < KernelBinaryStart) {
+                // I'm not actually sure if I can just do the first section if its
+                // in order... oh well this is fine enough.
+                KernelBinaryStart = ProgramHeader->VirtualAddress;
+            }
+
             USIZE Flags = PAGE_PRESENT |
                 ((ProgramHeader->Flags & ELF_WRITABLE) ? PAGE_WRITE : 0);
             PTR NumPages = ALIGN_UP(ProgramHeader->SizeInMemory, PAGE_SIZE) / PAGE_SIZE;
