@@ -193,7 +193,6 @@ ShillPrekernelInfo HyperGetPrekernelInfo(PTR Context, PTR Magic) {
     return (ShillPrekernelInfo) {
         .VirtualBase  = PrekernelInfo->VirtualBase,
         .PhysicalBase = PrekernelInfo->PhysicalBase,
-        .SizeBytes    = PrekernelInfo->Size,
     };
 }
 

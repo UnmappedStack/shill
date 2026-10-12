@@ -609,16 +609,17 @@ struct limine_date_at_boot_request {
 
 #define LIMINE_EXECUTABLE_ADDRESS_REQUEST_ID { LIMINE_COMMON_MAGIC, 0x71ba76863cc55f63, 0xb2644a48c516a487 }
 
+typedef struct limine_executable_address_response LimineExecutableResponse;
 struct limine_executable_address_response {
     uint64_t revision;
-    uint64_t physical_base;
-    uint64_t virtual_base;
+    uint64_t PhysicalBase;
+    uint64_t VirtualBase;
 };
 
 struct limine_executable_address_request {
     uint64_t id[4];
     uint64_t revision;
-    LIMINE_PTR(struct limine_executable_address_response *) response;
+    LIMINE_PTR(struct limine_executable_address_response *) Response;
 };
 
 /* Device Tree Blob */

@@ -25,6 +25,7 @@ static volatile uint64_t limine_requests_end_marker[] = LIMINE_REQUESTS_END_MARK
 LIMINE_REQUEST(HHDMRequest, hhdm, LIMINE_HHDM_REQUEST_ID);
 LIMINE_REQUEST(MemoryMapRequest, memmap, LIMINE_MEMMAP_REQUEST_ID);
 LIMINE_REQUEST(RSDPRequest, rsdp, LIMINE_RSDP_REQUEST_ID);
+LIMINE_REQUEST(ExecutableRequest, executable_address, LIMINE_EXECUTABLE_ADDRESS_REQUEST_ID);
 
 /* Get the direct map offset (HHDM) the bootloder provides and return it.
  *
@@ -125,7 +126,12 @@ ShillModuleInfo LimineGetKernelImageStart(PTR Context, PTR Magic) {
 /* Get basic information about the prekernel */
 ShillPrekernelInfo LimineGetPrekernelInfo(PTR Context, PTR Magic) {
     UNUSED(Magic), UNUSED(Context);
-    TODO("GetPrekernelInfo for this protocol");
+    LimineExecutableResponse *ExecutableResponse = ExecutableRequest.Response;
+    WriteConsole("virt base = %p, phys base = %p\n", ExecutableResponse->VirtualBase, ExecutableResponse->PhysicalBase);
+    return (ShillPrekernelInfo) {
+        .VirtualBase = ExecutableResponse->VirtualBase,
+        .PhysicalBase = ExecutableResponse->PhysicalBase,
+    };
 }
 
 /* find the rsdp the bootloader provides */

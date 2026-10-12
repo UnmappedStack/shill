@@ -136,17 +136,17 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     BootInfo.RSDP            = ProtocolInterfaces[Protocol].GetRSDP(Arg1, Arg2);
     InitBootstrapAllocator(BootInfo.MemoryMap);
 
-    WriteConsole("Switching to new page tree to replace bootloaders...\n");
+    WriteConsole("Switching to new page tree to replace bootloader's...\n");
     ShillPrekernelInfo PrekernelInfo = ProtocolInterfaces[Protocol].GetPrekernelInfo(Arg1, Arg2);
     PTR PML4 = CreateNewAddressSpace(BootInfo.DirectMapOffset, &PrekernelInfo);
     PTR MemoryMapSize = ALIGN_UP(sizeof(ShillMemoryMap) + sizeof(ShillMemoryMapEntry) * BootInfo.MemoryMap->NumEntries, PAGE_SIZE);
+    PTR PML4Virt = PML4 + BootInfo.DirectMapOffset;
     MapConsecutivePages(
-            (USIZE*) PML4, 
+            (USIZE*) PML4Virt, 
             (PTR) BootInfo.MemoryMap,
             (PTR) BootInfo.MemoryMap - BootInfo.DirectMapOffset,
             MemoryMapSize,
             PAGE_WRITE | PAGE_PRESENT);
-    PTR PML4Virt = PML4 + BootInfo.DirectMapOffset;
     SWITCH_PAGE_TREE(PML4);
     GPML4 = PML4Virt;
    

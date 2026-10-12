@@ -13,7 +13,6 @@
 typedef struct {
     PTR VirtualBase;
     PTR PhysicalBase;
-    PTR SizeBytes;
 } ShillPrekernelInfo;
 
 // NOT the kind of module that's passed to the kernel. I should
