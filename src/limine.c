@@ -24,6 +24,7 @@ static volatile uint64_t limine_requests_end_marker[] = LIMINE_REQUESTS_END_MARK
 
 LIMINE_REQUEST(HHDMRequest, hhdm, LIMINE_HHDM_REQUEST_ID);
 LIMINE_REQUEST(MemoryMapRequest, memmap, LIMINE_MEMMAP_REQUEST_ID);
+LIMINE_REQUEST(RSDPRequest, rsdp, LIMINE_RSDP_REQUEST_ID);
 
 /* Get the direct map offset (HHDM) the bootloder provides and return it.
  *
@@ -130,7 +131,8 @@ ShillPrekernelInfo LimineGetPrekernelInfo(PTR Context, PTR Magic) {
 /* find the rsdp the bootloader provides */
 PTR LimineGetRSDP(PTR Context, PTR Magic) {
     UNUSED(Magic), UNUSED(Context);
-    TODO("GetRSDP for this protocol");
+    LimineRSDPResponse *RSDPResponse = RSDPRequest.Response;
+    return (PTR) RSDPResponse->Address;
 }
 
 /* get all framebuffers and create a ShillFramebuffersList for them. */

@@ -509,15 +509,16 @@ struct limine_module_request {
 
 #define LIMINE_RSDP_REQUEST_ID { LIMINE_COMMON_MAGIC, 0xc5e77b6b397e7b43, 0x27637845accdcf3c }
 
+typedef struct limine_rsdp_response LimineRSDPResponse;
 struct limine_rsdp_response {
     uint64_t revision;
-    LIMINE_PTR(void *) address;
+    LIMINE_PTR(void *) Address;
 };
 
 struct limine_rsdp_request {
     uint64_t id[4];
     uint64_t revision;
-    LIMINE_PTR(struct limine_rsdp_response *) response;
+    LIMINE_PTR(struct limine_rsdp_response *) Response;
 };
 
 /* SMBIOS */
