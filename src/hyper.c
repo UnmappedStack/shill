@@ -3,6 +3,7 @@
  * Copyright 2026 Jake Steinburger (UnmappedStack) under the Mozilla Public
  * Licence 2.0. See LICENSE in the root of the repository for more information. */
 
+#include <strings.h>
 #include <util.h>
 #include <paging.h>
 #include <valloc.h>
@@ -12,7 +13,7 @@
 #include <hyper.h>
 #include <printf.h>
 
-PTR DirectMapOffset = 0;
+STATIC PTR DirectMapOffset = 0;
 
 /* Internal function to get the Hyper attribute of a type.
  * This is a little bit slow (linear search) but it shouldn't be run that often
@@ -117,8 +118,7 @@ ShillMemoryMap *HyperGetMemoryMap(PTR Context, PTR Magic) {
     PTR BytesNeeded = (NumEntries + 2) * sizeof(ShillMemoryMapEntry) + sizeof(ShillMemoryMap);
     UltraMemoryMapEntry *StoreAtEntry = HyperFindMemoryMapEntryLargeEnough(MMapHeader, BytesNeeded);
     if (!StoreAtEntry) {
-        WriteConsole("Could not find a memory map entry large enough to store abstracted memory map!\n"
-                     "Bootloader may have provided a *very* fragmented memmap... (Halting device)\n");
+        WriteConsole(NO_MEMMAP_ENTRY_BIG_ENOUGH);
         HaltDevice();
     }
 

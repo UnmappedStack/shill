@@ -424,22 +424,24 @@ struct limine_mp_request {
 #define LIMINE_MEMMAP_FRAMEBUFFER            7
 #define LIMINE_MEMMAP_RESERVED_MAPPED        8
 
+typedef struct limine_memmap_entry LimineMemoryMapEntry;
 struct limine_memmap_entry {
-    uint64_t base;
-    uint64_t length;
-    uint64_t type;
+    uint64_t Base;
+    uint64_t Length;
+    uint64_t Type;
 };
 
+typedef struct limine_memmap_response LimineMemoryMapResponse;
 struct limine_memmap_response {
     uint64_t revision;
-    uint64_t entry_count;
-    LIMINE_PTR(struct limine_memmap_entry **) entries;
+    uint64_t EntryCount;
+    LIMINE_PTR(struct limine_memmap_entry **) Entries;
 };
 
 struct limine_memmap_request {
     uint64_t id[4];
     uint64_t revision;
-    LIMINE_PTR(struct limine_memmap_response *) response;
+    LIMINE_PTR(struct limine_memmap_response *) Response;
 };
 
 /* Entry point */
