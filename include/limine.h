@@ -203,12 +203,13 @@ struct limine_video_mode {
     uint8_t blue_mask_shift;
 };
 
+typedef struct limine_framebuffer LimineFramebuffer;
 struct limine_framebuffer {
-    LIMINE_PTR(void *) address;
-    uint64_t width;
-    uint64_t height;
-    uint64_t pitch;
-    uint16_t bpp;
+    LIMINE_PTR(void *) Address;
+    uint64_t Width;
+    uint64_t Height;
+    uint64_t Pitch;
+    uint16_t BPP;
     uint8_t memory_model;
     uint8_t red_mask_size;
     uint8_t red_mask_shift;
@@ -224,16 +225,17 @@ struct limine_framebuffer {
     LIMINE_PTR(struct limine_video_mode **) modes;
 };
 
+typedef struct limine_framebuffer_response LimineFramebufferResponse;
 struct limine_framebuffer_response {
     uint64_t revision;
-    uint64_t framebuffer_count;
-    LIMINE_PTR(struct limine_framebuffer **) framebuffers;
+    uint64_t FramebufferCount;
+    LIMINE_PTR(struct limine_framebuffer **) Framebuffers;
 };
 
 struct limine_framebuffer_request {
     uint64_t id[4];
     uint64_t revision;
-    LIMINE_PTR(struct limine_framebuffer_response *) response;
+    LIMINE_PTR(struct limine_framebuffer_response *) Response;
 };
 
 /* Flanterm FB init params */

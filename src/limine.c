@@ -3,6 +3,8 @@
  * Copyright 2026 Jake Steinburger (UnmappedStack) under the Mozilla Public
  * Licence 2.0. See LICENSE in the root of the repository for more information. */
 
+#include <balloc.h>
+#include <valloc.h>
 #include <paging.h>
 #include <strings.h>
 #include <limine.h>
@@ -26,6 +28,7 @@ LIMINE_REQUEST(HHDMRequest, hhdm, LIMINE_HHDM_REQUEST_ID);
 LIMINE_REQUEST(MemoryMapRequest, memmap, LIMINE_MEMMAP_REQUEST_ID);
 LIMINE_REQUEST(RSDPRequest, rsdp, LIMINE_RSDP_REQUEST_ID);
 LIMINE_REQUEST(ExecutableRequest, executable_address, LIMINE_EXECUTABLE_ADDRESS_REQUEST_ID);
+LIMINE_REQUEST(FramebufferRequest, framebuffer, LIMINE_FRAMEBUFFER_REQUEST_ID);
 
 /* Get the direct map offset (HHDM) the bootloder provides and return it.
  *
@@ -127,7 +130,6 @@ ShillModuleInfo LimineGetKernelImageStart(PTR Context, PTR Magic) {
 ShillPrekernelInfo LimineGetPrekernelInfo(PTR Context, PTR Magic) {
     UNUSED(Magic), UNUSED(Context);
     LimineExecutableResponse *ExecutableResponse = ExecutableRequest.Response;
-    WriteConsole("virt base = %p, phys base = %p\n", ExecutableResponse->VirtualBase, ExecutableResponse->PhysicalBase);
     return (ShillPrekernelInfo) {
         .VirtualBase = ExecutableResponse->VirtualBase,
         .PhysicalBase = ExecutableResponse->PhysicalBase,
@@ -144,7 +146,44 @@ PTR LimineGetRSDP(PTR Context, PTR Magic) {
 /* get all framebuffers and create a ShillFramebuffersList for them. */
 ShillFramebuffersList *LimineGetFramebuffers(PTR Context, PTR Magic) {
     UNUSED(Magic), UNUSED(Context);
-    TODO("GetFramebuffers for this protocol");
+
+    LimineFramebufferResponse *FramebuffersResponse = FramebufferRequest.Response;
+    USIZE NumFramebuffers = FramebuffersResponse->FramebufferCount;
+    USIZE BytesNeeded = sizeof(ShillFramebuffersList) + sizeof(ShillFramebuffer) * NumFramebuffers;
+    ShillFramebuffersList *Framebuffers = (VOID*) AllocateBackedPages(
+            ALIGN_UP(BytesNeeded, PAGE_SIZE) / PAGE_SIZE,
+            VALLOC_ZONE_DEFAULT // lower half in virtual memory
+    );
+    INVALIDATE_RANGE((PTR)Framebuffers, ALIGN_UP(BytesNeeded, PAGE_SIZE) / PAGE_SIZE);
+
+    for (USIZE Entry = 0; Entry < NumFramebuffers; Entry++) {
+        LimineFramebuffer *OldFramebuffer = FramebuffersResponse->Framebuffers[Entry];
+        ShillFramebuffer NewFramebuffer = (ShillFramebuffer) {
+            .Width  = OldFramebuffer->Width,
+            .Height = OldFramebuffer->Height,
+            .Pitch  = OldFramebuffer->Pitch,
+            .BPP    = OldFramebuffer->BPP,
+            .Format = SHILL_FB_FORMAT_RGB888,
+            .PhysicalAddress = (PTR) OldFramebuffer->Address - DirectMapOffset,
+        };
+        Framebuffers->Framebuffers[Entry] = NewFramebuffer;
+
+        USIZE FbSize = NewFramebuffer.Width * NewFramebuffer.Height * NewFramebuffer.Pitch;
+        USIZE FbPages = ALIGN_UP(FbSize, PAGE_SIZE) / PAGE_SIZE;
+
+        /* technically limine maps stuff in for us, but it needs to be done in
+         * the replacement page tree too */
+        MapConsecutivePages(
+                (USIZE*)GPML4,                                    /* page tree */
+                NewFramebuffer.PhysicalAddress + DirectMapOffset, /* virt addr */
+                NewFramebuffer.PhysicalAddress,                   /* phys addr */
+                FbPages,                                          /* size in pages */
+                PAGE_WRITE | PAGE_PRESENT | PAGE_WC);
+        INVALIDATE_RANGE(NewFramebuffer.PhysicalAddress + DirectMapOffset, FbPages);
+    }
+    
+    Framebuffers->NumFramebuffers = NumFramebuffers;
+    return Framebuffers;
 }
 
 /* get all modules (except for the one containing the kernel binary) and decompress

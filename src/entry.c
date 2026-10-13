@@ -149,7 +149,6 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
             PAGE_WRITE | PAGE_PRESENT);
     SWITCH_PAGE_TREE(PML4);
     GPML4 = PML4Virt;
-   
     // some other boot info needs to be abstracted only after the new page tree is set up...
     BootInfo.Framebuffers = ProtocolInterfaces[Protocol].GetFramebuffers(Arg1, Arg2);
     BootInfo.Modules      = ProtocolInterfaces[Protocol].GetModules(Arg1, Arg2);

@@ -239,6 +239,7 @@ ShillFramebuffersList *HyperGetFramebuffers(PTR Context, PTR Magic) {
             ALIGN_UP(BytesNeeded, PAGE_SIZE) / PAGE_SIZE,
             VALLOC_ZONE_DEFAULT // lower half in virtual memory
     );
+    INVALIDATE_RANGE((PTR)Framebuffers, ALIGN_UP(BytesNeeded, PAGE_SIZE) / PAGE_SIZE);
 
     UltraAttributeHeader *Header = UltraGetAttributeOfType(BootContext, ULTRA_ATTRIBUTE_FRAMEBUFFER_INFO);
     for (USIZE Entry = 0; Entry < BootContext->AttributeCount; Entry++) {
