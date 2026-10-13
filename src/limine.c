@@ -29,6 +29,7 @@ LIMINE_REQUEST(MemoryMapRequest, memmap, LIMINE_MEMMAP_REQUEST_ID);
 LIMINE_REQUEST(RSDPRequest, rsdp, LIMINE_RSDP_REQUEST_ID);
 LIMINE_REQUEST(ExecutableRequest, executable_address, LIMINE_EXECUTABLE_ADDRESS_REQUEST_ID);
 LIMINE_REQUEST(FramebufferRequest, framebuffer, LIMINE_FRAMEBUFFER_REQUEST_ID);
+LIMINE_REQUEST(ModuleRequest, module, LIMINE_MODULE_REQUEST_ID);
 
 /* Get the direct map offset (HHDM) the bootloder provides and return it.
  *
@@ -190,5 +191,41 @@ ShillFramebuffersList *LimineGetFramebuffers(PTR Context, PTR Magic) {
  * it if necessary, returning a ShillModulesList */
 ShillModulesList *LimineGetModules(PTR Context, PTR Magic) {
     UNUSED(Magic), UNUSED(Context);
-    TODO("GetModules for this protocol");
+
+    LimineModuleResponse *ModuleResponse = ModuleRequest.Response;
+    ASSERT(ModuleResponse && "you probably didn't give a module for the kernel image");
+    USIZE NumModules = ModuleResponse->ModuleCount;
+
+    USIZE BytesNeeded = sizeof(ShillModulesList) + sizeof(ShillModule) * (NumModules-1);
+    ShillModulesList *Modules = (VOID*) AllocateBackedPages(
+            ALIGN_UP(BytesNeeded, PAGE_SIZE) / PAGE_SIZE,
+            VALLOC_ZONE_DEFAULT // lower half in virtual memory
+    );
+
+    INT Offset = 0;
+    for (USIZE Entry = 0; Entry < NumModules; Entry++) {
+        LimineFile *ModuleInfo = ModuleResponse->Modules[Entry];
+
+        if (CStringsAreEqual("SHILL_KERNEL_IMAGE_START", ModuleInfo->String)) {
+            if (Offset == -1) {
+                WriteConsole("Multiple modules referencing the kernel binary found!\n");
+                HaltDevice();
+            }
+            Offset = -1;
+            continue;
+        }
+
+        ShillModuleInfo Bounds = {(PTR)ModuleInfo->Address, ModuleInfo->Size};
+        if (VerifyGZ(Bounds.Address)) {
+            Bounds = DecompressGZ(&Bounds);
+        }
+        
+        CopyString(Modules->Modules[Entry+Offset].Name, (CHAR*)ModuleInfo->String);
+        Modules->Modules[Entry+Offset].SizeBytes = Bounds.SizeBytes;
+        Modules->Modules[Entry+Offset].Address   = Bounds.Address;
+    }
+    ASSERT(Offset == -1);
+
+    Modules->NumModules = NumModules - 1;
+    return Modules;
 }

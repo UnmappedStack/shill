@@ -85,12 +85,13 @@ struct limine_uuid {
 #define LIMINE_MEDIA_TYPE_OPTICAL 1
 #define LIMINE_MEDIA_TYPE_TFTP 2
 
+typedef struct limine_file LimineFile;
 struct limine_file {
     uint64_t revision;
-    LIMINE_PTR(void *) address;
-    uint64_t size;
+    LIMINE_PTR(void *) Address;
+    uint64_t Size;
     LIMINE_PTR(char *) path;
-    LIMINE_PTR(char *) string;
+    LIMINE_PTR(char *) String;
     uint32_t media_type;
     uint32_t unused;
     uint8_t tftp_ipv4[4];
@@ -491,16 +492,17 @@ struct limine_internal_module {
     uint64_t flags;
 };
 
+typedef struct limine_module_response LimineModuleResponse;
 struct limine_module_response {
     uint64_t revision;
-    uint64_t module_count;
-    LIMINE_PTR(struct limine_file **) modules;
+    uint64_t ModuleCount;
+    LIMINE_PTR(struct limine_file **) Modules;
 };
 
 struct limine_module_request {
     uint64_t id[4];
     uint64_t revision;
-    LIMINE_PTR(struct limine_module_response *) response;
+    LIMINE_PTR(struct limine_module_response *) Response;
 
     /* Request revision 1 */
     uint64_t internal_module_count;
