@@ -15,9 +15,15 @@
 uint8_t *fb_addr;
 uint32_t fb_pitch;
 
+uint8_t r_shift, g_shift, b_shift;
+
 void draw_pixel(uint64_t x, uint64_t y, uint32_t colour) {
+    uint8_t r = colour >> r_shift;
+    uint8_t g = colour >> g_shift;
+    uint8_t b = colour >> b_shift;
+    uint32_t new = b | (g << 8) | (r << 16);
     uint32_t *location = (uint32_t *)((fb_addr) + y * fb_pitch);
-    location[x] = colour;
+    location[x] = new;
 }
 
 static inline void outb(uint16_t port, uint8_t val) {
@@ -134,10 +140,15 @@ void _start(ShillBootInfoBlock boot_info, uint32_t magic) {
         serial_puts("No framebuffer detected!\n");
         hcf();
     }
-
-    if (boot_info.Framebuffers->Framebuffers[0].Format != SHILL_FB_FORMAT_XRGB8888) {
-        serial_puts("Unhandled framebuffer format: ");
-        putint(boot_info.Framebuffers->Framebuffers[0].Format);
+    
+    uint32_t fmt = boot_info.Framebuffers->Framebuffers[0].Format;
+    if (fmt == SHILL_FB_FORMAT_XRGB8888 ||
+            fmt == SHILL_FB_FORMAT_RGB888) {
+        b_shift = 0;
+        g_shift = 8;
+        r_shift = 16;
+    } else {
+        serial_puts("unexpected framebuffer format\n");
         hcf();
     }
 
