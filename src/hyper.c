@@ -176,10 +176,7 @@ Skip:
         CurrentHeader = ULTRA_NEXT_ATTRIBUTE(CurrentHeader);
     }
 
-    WriteConsole("\nKernel image module could not be found!\n"
-                 "Make sure your bootloader config file has a module pointing to"
-                 " the kernel which should be loaded, and specify the name "
-                 "SHILL_KERNEL_IMAGE_START\n\nHalting device\n");
+    WriteConsole(NO_KERNEL_IMAGE);
     HaltDevice();
 }
 

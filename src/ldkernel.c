@@ -116,16 +116,20 @@ KernelImage LoadKernel(PTR PML4, ShillModuleInfo Kernel) {
                 KernelBinaryStart = ProgramHeader->VirtualAddress;
             }
 
-            USIZE Flags = PAGE_PRESENT |
-                ((ProgramHeader->Flags & ELF_WRITABLE) ? PAGE_WRITE : 0);
+            // TODO: maybe don't just map the whole thing as writable...
             PTR NumPages = ALIGN_UP(ProgramHeader->SizeInMemory, PAGE_SIZE) / PAGE_SIZE;
             AllocVirtuallyConsecutivePages(
                     (USIZE*) PML4,
                     ProgramHeader->VirtualAddress,
                     NumPages,
-                    Flags);
+                    PAGE_PRESENT | PAGE_WRITE);
 
             INVALIDATE_RANGE(ProgramHeader->VirtualAddress, NumPages);
+            WriteConsole("copy %zu bytes from %p to %p\n",
+                    ProgramHeader->SizeInFile,
+                    Kernel.Address + ProgramHeader->Offset,
+                    ProgramHeader->VirtualAddress
+            );
             CopyBuffer(
                     (U8*)ProgramHeader->VirtualAddress,
                     (U8*)(Kernel.Address + ProgramHeader->Offset),

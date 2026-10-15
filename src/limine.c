@@ -99,7 +99,7 @@ ShillMemoryMap *LimineGetMemoryMap(PTR Context, PTR Magic) {
     StoreAtEntry->Base += ALIGN_UP(BytesNeeded, PAGE_SIZE);
     StoreAtEntry->Length -= ALIGN_UP(BytesNeeded, PAGE_SIZE);
 
-    /* finally we can just move hyper's entries to the new abstracted memory */
+    /* finally we can just move limine's entries to the new abstracted memory */
     AbstractedMemoryMap->NumEntries = 0;
     for (USIZE Entry = 0; Entry < NumEntries; Entry++) {
         if (MemoryMap->Entries[0][Entry].Base == StoreAtEntry->Base) {
@@ -124,7 +124,26 @@ ShillMemoryMap *LimineGetMemoryMap(PTR Context, PTR Magic) {
 /* Find the kernel image in memory, from the bootloader's module for it */
 ShillModuleInfo LimineGetKernelImageStart(PTR Context, PTR Magic) {
     UNUSED(Magic), UNUSED(Context);
-    TODO("GetKernelImageStart for this protocol");
+
+    LimineModuleResponse *ModuleResponse = ModuleRequest.Response;
+    // a valid response is already asserted earlier anyways
+    USIZE NumModules = ModuleResponse->ModuleCount;
+
+    for (USIZE Entry = 0; Entry < NumModules; Entry++) {
+        LimineFile *ModuleInfo = ModuleResponse->Modules[Entry];
+        
+        if (!CStringsAreEqual("SHILL_KERNEL_IMAGE_START", ModuleInfo->String)) {
+            continue;
+        }
+
+        ShillModuleInfo Module = {0};
+        Module.Address = (PTR) ModuleInfo->Address;
+        Module.SizeBytes = ModuleInfo->Size;
+        return Module;
+    }
+    
+    WriteConsole(NO_KERNEL_IMAGE);
+    HaltDevice();
 }
 
 /* Get basic information about the prekernel */
