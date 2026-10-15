@@ -43,4 +43,4 @@ xorriso -as mkisofs \
 
 python3 hyper_install image.iso 
 
-qemu-system-x86_64 image.iso -serial stdio -monitor telnet:127.0.0.1:8000,server,nowait -no-reboot -no-shutdown
+qemu-system-x86_64 image.iso -serial stdio -monitor telnet:127.0.0.1:8000,server,nowait -no-reboot -no-shutdown --accel kvm

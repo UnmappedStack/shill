@@ -125,11 +125,6 @@ KernelImage LoadKernel(PTR PML4, ShillModuleInfo Kernel) {
                     PAGE_PRESENT | PAGE_WRITE);
 
             INVALIDATE_RANGE(ProgramHeader->VirtualAddress, NumPages);
-            WriteConsole("copy %zu bytes from %p to %p\n",
-                    ProgramHeader->SizeInFile,
-                    Kernel.Address + ProgramHeader->Offset,
-                    ProgramHeader->VirtualAddress
-            );
             CopyBuffer(
                     (U8*)ProgramHeader->VirtualAddress,
                     (U8*)(Kernel.Address + ProgramHeader->Offset),
