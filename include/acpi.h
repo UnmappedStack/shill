@@ -40,6 +40,13 @@ typedef struct {
     USIZE Entries[0];
 } PACKED SDT;
 
+typedef struct {
+    ISDTHeader Header;
+    U32 LocalAPICAddr;
+    U32 flags;
+    // fields are then here
+} PACKED MADT;
+
 /* Find the RSDT or XSDT (depending on the revision)
  *
  * RSDP: the RSDP provided by the bootloader (or scanned for, if using mb1)
@@ -51,4 +58,11 @@ typedef struct {
  */
 SDT *FindSDT(PTR RSDPAddress, PTR DirectMapOffset);
 
-VOID *FindMADT(SDT *RootSDT);
+/* Find the MADT
+ *
+ * RootSDT: the RSDT/XSDT (found by FindSDT)
+ * DirectMapOffset: literally what the parameter is called lol
+ *
+ * Returns pointer to the MADT
+ */
+MADT *FindMADT(SDT *RootSDT, PTR DirectMapOffset);
