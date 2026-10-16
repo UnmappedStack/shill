@@ -9,6 +9,8 @@
 #pragma once
 #include <types.h>
 
+#define LOCAL_APIC (0)
+
 typedef struct {
     UBCHAR Signature[8];
     U8 Checksum;
@@ -41,11 +43,23 @@ typedef struct {
 } PACKED SDT;
 
 typedef struct {
+    U8 EntryType;
+    U8 RecordLength;
+} PACKED MADTEntryHeader;
+
+typedef struct {
     ISDTHeader Header;
     U32 LocalAPICAddr;
     U32 flags;
     // fields are then here
 } PACKED MADT;
+
+typedef struct {
+    MADTEntryHeader Header;
+    U8 ProcessorID;
+    U8 APICID;
+    U32 Flags;
+} PACKED ProcessorLocalAPIC;
 
 /* Find the RSDT or XSDT (depending on the revision)
  *

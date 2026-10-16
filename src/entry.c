@@ -9,6 +9,7 @@
 
 #include <valloc.h>
 #include <pfndb.h>
+#include <aps.h>
 #include <acpi.h>
 #include <ldkernel.h>
 #include <paging.h>
@@ -156,6 +157,7 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     MADT *MADTBlock = FindMADT(SDTBlock, BootInfo.DirectMapOffset);
     WriteConsole("Find [X|R]SDT: %p\n", SDTBlock);
     WriteConsole("Find MADT: %p\n", MADTBlock);
+    BootInfo.Processors = FindAPs(MADTBlock);
 
     // some other boot info needs to be abstracted only after the new page tree is set up...
     BootInfo.Framebuffers = ProtocolInterfaces[Protocol].GetFramebuffers(Arg1, Arg2);

@@ -81,6 +81,16 @@ typedef struct {
     ShillModule Modules[];
 } ShillModulesList;
 
+typedef struct {
+    // In the case of x86, this'd be the APIC ID
+    size_t ID;
+} ShillProcessor;
+
+typedef struct {
+    size_t NumProcessors;
+    ShillProcessor Processors[];
+} ShillProcessorsList;
+
 /* The structure passed directly to the kernel containing the abstracted
  * away boot information */
 typedef struct {
@@ -91,4 +101,5 @@ typedef struct {
     ShillFramebuffersList *Framebuffers;
     ShillModulesList *Modules;
     uintptr_t PFNDB;
+    ShillProcessorsList *Processors;
 } ShillBootInfoBlock;

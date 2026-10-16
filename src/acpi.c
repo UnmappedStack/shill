@@ -70,7 +70,7 @@ MADT *FindMADT(SDT *RootSDT, PTR DirectMapOffset) {
         else         Entry = ((U32*)RootSDT->Entries)[EntryIdx];
 
         ISDTHeader *Header = (ISDTHeader*)(Entry + DirectMapOffset);
-        if (!BuffersAreEqual(Header->Signature, "APIC", 4))
+        if (BuffersAreEqual(Header->Signature, "APIC", 4))
             return (MADT*)Header;
     }
 
