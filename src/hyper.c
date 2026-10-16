@@ -199,7 +199,7 @@ PTR HyperGetRSDP(PTR Context, PTR Magic) {
     UltraBootContext *BootContext = (UltraBootContext*) Context;
     UltraAttributeHeader *Header = UltraGetAttributeOfType(BootContext, ULTRA_ATTRIBUTE_PLATFORM_INFO); 
     UltraPlatformInfoAttribute *PlatformInfo = CONTAINER_OF(Header, UltraPlatformInfoAttribute, Header);
-    return PlatformInfo->RSDPAddress;
+    return PlatformInfo->RSDPAddress + DirectMapOffset;
 }
 
 /* count the number of attributes of a specific type

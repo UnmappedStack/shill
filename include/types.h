@@ -30,6 +30,7 @@ typedef int INT;
 
 #define NULLPTR NULL
 #define NORETURN __attribute((noreturn))
+#define PACKED   __attribute((packed))
 #define CONST const
 #define STATIC static
 

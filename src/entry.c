@@ -9,6 +9,7 @@
 
 #include <valloc.h>
 #include <pfndb.h>
+#include <acpi.h>
 #include <ldkernel.h>
 #include <paging.h>
 #include <balloc.h>
@@ -149,6 +150,11 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
             PAGE_WRITE | PAGE_PRESENT);
     SWITCH_PAGE_TREE(PML4);
     GPML4 = PML4Virt;
+
+    // Search for APs and start them
+    SDT *SDTBlock = FindSDT(BootInfo.RSDP, BootInfo.DirectMapOffset);
+    WriteConsole("Find [X|R]SDT: %p\n", SDTBlock);
+
     // some other boot info needs to be abstracted only after the new page tree is set up...
     BootInfo.Framebuffers = ProtocolInterfaces[Protocol].GetFramebuffers(Arg1, Arg2);
     BootInfo.Modules      = ProtocolInterfaces[Protocol].GetModules(Arg1, Arg2);
