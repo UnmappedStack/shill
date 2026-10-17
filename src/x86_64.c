@@ -107,7 +107,6 @@ VOID ArchStartAP(PTR LapicAddr, USIZE ApicId) {
         __builtin_ia32_pause();
     }
    
-    WriteConsole("hal:x86_64: FirstPageLower=%p, PFN=%zu\n", FirstPageLower, FirstPageLower/PAGE_SIZE);
     WriteConsole("hal:x86_64: Sending SIPI to CPU%zu ", ApicId);
     SendIPI(
             LapicAddr,

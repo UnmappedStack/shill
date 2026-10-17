@@ -18,7 +18,7 @@ gcc ../src/*.c -I ../include -I ../shared -c ${CFLAGS} -fsanitize=undefined
 
 # this is so fucking dumb to have to do per file but im too lazy for a proper
 # build system yet...
-nasm ../src/x86ap.asm -f elf64 -Wall -o x86ap.o
+nasm ../src/x86ap.asm -f elf64 -o x86ap.o
 cd ..
 
 ld obj/* -T linker.ld -o shill ${LDFLAGS}

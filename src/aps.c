@@ -64,7 +64,15 @@ ShillProcessorsList *FindAPs(MADT *MADTBlock) {
     return Processors;
 }
 
-extern VOID APTrampoline(VOID);
+typedef struct {
+    U16 Size;
+    U32 Address;
+} PACKED GDTR;
+extern GDTR APgdtr;
+extern U64 APgdt[];
+extern U32 FarjumpTrampoline;
+extern VOID APTrampolineStart(VOID);
+extern VOID EnterLongMode(VOID);
 VOID SetupTrampoline(VOID) {
     ASSERT(FirstPageLower);
 
@@ -76,8 +84,14 @@ VOID SetupTrampoline(VOID) {
             PAGE_PRESENT | PAGE_WRITE // flags
     );
     INVALIDATE_ADDR(FirstPageLower);
+    
+    // prolly not good to have this x86 stuff here, TODO move out
+    // I'll probably do it anyways tho when the second arch arrives
+    #define RELOCATE(Old) (FirstPageLower + ((PTR)(Old) - (PTR)APTrampolineStart))
+    APgdtr.Address = (U32) RELOCATE(APgdt);
+    FarjumpTrampoline = (U32) RELOCATE(EnterLongMode);
 
-    CopyBuffer((VOID*)FirstPageLower, APTrampoline, PAGE_SIZE);
+    CopyBuffer((VOID*)FirstPageLower, APTrampolineStart, PAGE_SIZE);
 }
 
 VOID StartAPs(PTR DirectMapOffset, MADT *MADTBlock, ShillProcessorsList *Processors) {
