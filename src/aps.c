@@ -9,6 +9,7 @@
 #include <acpi.h>
 #include <paging.h>
 #include <printf.h>
+#include <balloc.h>
 #include <valloc.h>
 #include <shill.h>
 #include <util.h>
@@ -63,6 +64,22 @@ ShillProcessorsList *FindAPs(MADT *MADTBlock) {
     return Processors;
 }
 
+extern VOID APTrampoline(VOID);
+VOID SetupTrampoline(VOID) {
+    ASSERT(FirstPageLower);
+
+    // identity map the lowest page which will contain the trampoline
+    MapPage(
+            (USIZE*)GPML4,            // page tree target
+            FirstPageLower,           // virt addr
+            FirstPageLower,           // phys addr
+            PAGE_PRESENT | PAGE_WRITE // flags
+    );
+    INVALIDATE_ADDR(FirstPageLower);
+
+    CopyBuffer((VOID*)FirstPageLower, APTrampoline, PAGE_SIZE);
+}
+
 VOID StartAPs(PTR DirectMapOffset, MADT *MADTBlock, ShillProcessorsList *Processors) {
     MapPage(
             (USIZE*)GPML4,                              // page tree target
@@ -71,6 +88,8 @@ VOID StartAPs(PTR DirectMapOffset, MADT *MADTBlock, ShillProcessorsList *Process
             PAGE_PRESENT | PAGE_WRITE                   // flags
     );
     INVALIDATE_ADDR(MADTBlock->LocalAPICAddr + DirectMapOffset);
+
+    SetupTrampoline();
 
     for (USIZE Cpu = 0; Cpu < Processors->NumProcessors; Cpu++) {
         USIZE Id = Processors->Processors[Cpu].ID;

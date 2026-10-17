@@ -7,6 +7,7 @@
  */
 
 #include <printf.h>
+#include <balloc.h>
 #include <types.h>
 #include <x86_64.h>
 
@@ -99,5 +100,20 @@ VOID ArchStartAP(PTR LapicAddr, USIZE ApicId) {
             IPI_DELIVERY_INIT, // flags
             ApicId
     );
-    WriteConsole("OK\n");
+    WriteConsole("(OK)\n");
+
+    // so fucking dumb, TODO use an actual timer
+    for (USIZE I = 0; I < 10000000; I++) {
+        __builtin_ia32_pause();
+    }
+   
+    WriteConsole("hal:x86_64: FirstPageLower=%p, PFN=%zu\n", FirstPageLower, FirstPageLower/PAGE_SIZE);
+    WriteConsole("hal:x86_64: Sending SIPI to CPU%zu ", ApicId);
+    SendIPI(
+            LapicAddr,
+            FirstPageLower / PAGE_SIZE, // page of trampoline
+            IPI_DELIVERY_STARTUP,       // flags
+            ApicId
+    );
+    WriteConsole("(OK)\n");
 }
