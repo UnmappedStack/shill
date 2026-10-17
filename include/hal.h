@@ -49,3 +49,6 @@ VOID WriteSerialChar(CHAR C);
             INVALIDATE_ADDR(((PTR)Start + Offset * PAGE_SIZE)); \
         } \
     } while (0)
+
+// TODO: more arch agnostic api without LapicAddr
+VOID ArchStartAP(PTR LapicAddr, USIZE ApicId);

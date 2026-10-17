@@ -35,3 +35,18 @@
 #define PADDR_FROM_TABLE_ENTRY(entry) (ALIGN_DOWN(entry, PAGE_SIZE))
 
 #define VOFF 12
+
+// ipi stuff
+#define IPI_DEST_SHIFT 24
+#define IPI_DELIVERY_FIXED                  0b000 << 8
+#define IPI_DELIVERY_LOWEST                 0b001 << 8
+#define IPI_DELIVERY_SMI                    0b010 << 8
+#define IPI_DELIVERY_NMI                    0b100 << 8
+#define IPI_DELIVERY_INIT                   0b101 << 8
+#define IPI_DELIVERY_STARTUP                0b110 << 8
+#define IPI_DESTINATION_PHYSICAL            0b0   << 11
+#define IPI_DESTINATION_LOGICAL             0b1   << 11
+#define IPI_LEVEL_DEASSERT                  0b0   << 14
+#define IPI_LEVEL_ASSERT                    0b1   << 14
+#define IPI_TRIGGER_EDGE                    0b0   << 15
+#define IPI_TRIGGER_LEVEL                   0b1   << 15

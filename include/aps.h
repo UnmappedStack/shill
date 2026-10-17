@@ -11,3 +11,4 @@
 #include <acpi.h>
 
 ShillProcessorsList *FindAPs(MADT *MADTBlock);
+VOID StartAPs(PTR DirectMapOffset, MADT *MADTBlock, ShillProcessorsList *Processors);

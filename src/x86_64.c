@@ -6,6 +6,7 @@
  * Licence 2.0. See LICENSE in the root of the repository for more information.
  */
 
+#include <printf.h>
 #include <types.h>
 #include <x86_64.h>
 
@@ -76,4 +77,27 @@ VOID WriteSerial(CSTRING Str) {
     for (USIZE Char = 0; Str[Char]; Char++) {
         WriteSerialChar(Str[Char]);
     }
+}
+
+VOID WriteLapic(PTR LapicAddr, USIZE RegOffset, U32 Val) {
+    U32 volatile *Addr =
+        (U32 volatile *)(((USIZE)LapicAddr) + RegOffset);
+    *Addr = Val;
+}
+
+#define LAPIC_INTERRUPT_COMMAND_REGISTER 0x300
+VOID SendIPI(PTR LapicAddr, U8 Vector, U32 Flags, U8 Dest) {
+    WriteLapic(LapicAddr, LAPIC_INTERRUPT_COMMAND_REGISTER + 0x10, (USIZE)Dest << IPI_DEST_SHIFT);
+    WriteLapic(LapicAddr, LAPIC_INTERRUPT_COMMAND_REGISTER, Vector | Flags);
+}
+
+VOID ArchStartAP(PTR LapicAddr, USIZE ApicId) {
+    WriteConsole("hal:x86_64: Sending INIT IPI to CPU%zu ", ApicId);
+    SendIPI(
+            LapicAddr,
+            0, // init ipis must have vector 0
+            IPI_DELIVERY_INIT, // flags
+            ApicId
+    );
+    WriteConsole("OK\n");
 }

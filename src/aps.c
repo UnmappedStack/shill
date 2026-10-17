@@ -7,6 +7,7 @@
  */
 
 #include <acpi.h>
+#include <paging.h>
 #include <printf.h>
 #include <valloc.h>
 #include <shill.h>
@@ -60,4 +61,20 @@ ShillProcessorsList *FindAPs(MADT *MADTBlock) {
     }
 
     return Processors;
+}
+
+VOID StartAPs(PTR DirectMapOffset, MADT *MADTBlock, ShillProcessorsList *Processors) {
+    MapPage(
+            (USIZE*)GPML4,                              // page tree target
+            MADTBlock->LocalAPICAddr + DirectMapOffset, // virt addr
+            MADTBlock->LocalAPICAddr,                   // phys addr
+            PAGE_PRESENT | PAGE_WRITE                   // flags
+    );
+    INVALIDATE_ADDR(MADTBlock->LocalAPICAddr + DirectMapOffset);
+
+    for (USIZE Cpu = 0; Cpu < Processors->NumProcessors; Cpu++) {
+        USIZE Id = Processors->Processors[Cpu].ID;
+        if (!Id) continue; // not bsp
+        ArchStartAP(MADTBlock->LocalAPICAddr + DirectMapOffset, Id);
+    }
 }

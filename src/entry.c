@@ -158,6 +158,7 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     WriteConsole("Find [X|R]SDT: %p\n", SDTBlock);
     WriteConsole("Find MADT: %p\n", MADTBlock);
     BootInfo.Processors = FindAPs(MADTBlock);
+    StartAPs(BootInfo.DirectMapOffset, MADTBlock, BootInfo.Processors);
 
     // some other boot info needs to be abstracted only after the new page tree is set up...
     BootInfo.Framebuffers = ProtocolInterfaces[Protocol].GetFramebuffers(Arg1, Arg2);
