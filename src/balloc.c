@@ -17,7 +17,7 @@
 #include <hal.h>
 #include <printf.h>
 
-PTR FirstPageLower = 0;
+PTR FirstPagesLower[2] = {0, 0};
 
 STATIC ShillMemoryMapEntry *BumpCurrentRegion = NULLPTR;
 STATIC PTR BumpCurrentOffset = 0; // (in pages)
@@ -46,8 +46,10 @@ VOID InitBootstrapAllocator(ShillMemoryMap *MemoryMap) {
 
             // page for the ap startup trampoline, must be in the
             // lowest mb
-            FirstPageLower = AllocPhysPage();
-            ASSERT((FirstPageLower / PAGE_SIZE) < 256);
+            FirstPagesLower[0] = AllocPhysPage();
+            FirstPagesLower[1] = AllocPhysPage();
+            ASSERT((FirstPagesLower[0] / PAGE_SIZE) < 256);
+            ASSERT((FirstPagesLower[1] / PAGE_SIZE) < 256);
             return;
         }
     }

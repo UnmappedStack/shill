@@ -9,7 +9,7 @@
 #include <types.h>
 #include <api.h>
 
-extern PTR FirstPageLower;
+extern PTR FirstPagesLower[2];
 
 extern ShillMemoryMap *GMemoryMap;
 

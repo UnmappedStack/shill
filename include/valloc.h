@@ -9,8 +9,10 @@
 
 #include <types.h>
 
-#define BUMP_START (0x4000)
-#define KERNEL_STACK_BUMP_START (0xFFFFFFFFFFFF0000LL)
+#define BUMP_START (0x100000) /* needs to be after the first mb
+                               * to avoid some identity mapped trampoline
+                               * pages */
+#define KERNEL_STACK_BUMP_START (0xFFFFFFFFFFF00000LL)
 
 typedef enum {
     // most virtual memory allocations,

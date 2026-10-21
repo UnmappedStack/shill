@@ -110,7 +110,7 @@ VOID ArchStartAP(PTR LapicAddr, USIZE ApicId) {
     WriteConsole("hal:x86_64: Sending SIPI to CPU%zu ", ApicId);
     SendIPI(
             LapicAddr,
-            FirstPageLower / PAGE_SIZE, // page of trampoline
+            FirstPagesLower[0] / PAGE_SIZE, // page of trampoline
             IPI_DELIVERY_STARTUP,       // flags
             ApicId
     );

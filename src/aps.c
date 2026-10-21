@@ -70,28 +70,40 @@ typedef struct {
 } PACKED GDTR;
 extern GDTR APgdtr;
 extern U64 APgdt[];
-extern U32 FarjumpTrampoline;
+extern U32 FarjumpTrampoline32;
+extern U32 FarjumpTrampoline64;
+extern U32 APcr3;
 extern VOID APTrampolineStart(VOID);
+extern VOID APTrampolineEnd(VOID);
 extern VOID EnterLongMode(VOID);
-VOID SetupTrampoline(VOID) {
-    ASSERT(FirstPageLower);
+extern VOID LongModeStub(VOID);
+VOID SetupTrampoline(PTR DirectMapOffset) {
+    UNUSED(DirectMapOffset); // TODO; remove if it ends up being unnecessary
+    ASSERT(FirstPagesLower[0]);
+    ASSERT(APTrampolineEnd < APTrampolineStart + PAGE_SIZE);
 
-    // identity map the lowest page which will contain the trampoline
-    MapPage(
-            (USIZE*)GPML4,            // page tree target
-            FirstPageLower,           // virt addr
-            FirstPageLower,           // phys addr
-            PAGE_PRESENT | PAGE_WRITE // flags
-    );
-    INVALIDATE_ADDR(FirstPageLower);
+    // identity map the lowest pages which will contain the trampoline
+    for (U8 Pg = 0; Pg < 2; Pg++) {
+        MapPage(
+                (USIZE*)GPML4,            // page tree target
+                FirstPagesLower[Pg],      // virt addr
+                FirstPagesLower[Pg],      // phys addr
+                PAGE_PRESENT | PAGE_WRITE // flags
+        );
+        INVALIDATE_ADDR(FirstPagesLower[Pg]);
+        WriteConsole("identity map %p\n", FirstPagesLower[Pg]);
+    }
     
     // prolly not good to have this x86 stuff here, TODO move out
     // I'll probably do it anyways tho when the second arch arrives
-    #define RELOCATE(Old) (FirstPageLower + ((PTR)(Old) - (PTR)APTrampolineStart))
+    #define RELOCATE(Old) (FirstPagesLower[0] + ((PTR)(Old) - (PTR)APTrampolineStart))
     APgdtr.Address = (U32) RELOCATE(APgdt);
-    FarjumpTrampoline = (U32) RELOCATE(EnterLongMode);
+    APcr3 = FirstPagesLower[1];
+    FarjumpTrampoline32 = (U32) RELOCATE(EnterLongMode);
+    FarjumpTrampoline64 = (U32) RELOCATE(LongModeStub);
 
-    CopyBuffer((VOID*)FirstPageLower, APTrampolineStart, PAGE_SIZE);
+    CopyBuffer((VOID*)FirstPagesLower[0], APTrampolineStart, PAGE_SIZE);
+    CopyBuffer((VOID*)FirstPagesLower[1], (VOID*)GPML4, PAGE_SIZE);
 }
 
 VOID StartAPs(PTR DirectMapOffset, MADT *MADTBlock, ShillProcessorsList *Processors) {
@@ -103,7 +115,7 @@ VOID StartAPs(PTR DirectMapOffset, MADT *MADTBlock, ShillProcessorsList *Process
     );
     INVALIDATE_ADDR(MADTBlock->LocalAPICAddr + DirectMapOffset);
 
-    SetupTrampoline();
+    SetupTrampoline(DirectMapOffset);
 
     for (USIZE Cpu = 0; Cpu < Processors->NumProcessors; Cpu++) {
         USIZE Id = Processors->Processors[Cpu].ID;
