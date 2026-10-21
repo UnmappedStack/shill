@@ -4,6 +4,10 @@
  * 
  * Copyright 2026 Jake Steinburger (UnmappedStack) under the Mozilla Public
  * Licence 2.0. See LICENSE in the root of the repository for more information.
+ *
+ * TODO: this could probably use less arch specific code and allocate less unnecessary
+ * extra memory (remember the prekernel uses a bootstrap bump allocator so unless the
+ * kernel does so, it will not be freed!)
  */
 
 #include <acpi.h>
@@ -64,6 +68,7 @@ ShillProcessorsList *FindAPs(MADT *MADTBlock) {
     return Processors;
 }
 
+// all of this should be moved to another header and made less arch specific!!! (TODO)
 typedef struct {
     U16 Size;
     U32 Address;
@@ -77,6 +82,8 @@ extern VOID APTrampolineStart(VOID);
 extern VOID APTrampolineEnd(VOID);
 extern VOID EnterLongMode(VOID);
 extern VOID LongModeStub(VOID);
+extern PTR APCEntry;
+extern VOID APEntry(USIZE SoftwareId); // in entry.c, TODO move to a header
 VOID SetupTrampoline(PTR DirectMapOffset) {
     UNUSED(DirectMapOffset); // TODO; remove if it ends up being unnecessary
     ASSERT(FirstPagesLower[0]);
@@ -91,7 +98,6 @@ VOID SetupTrampoline(PTR DirectMapOffset) {
                 PAGE_PRESENT | PAGE_WRITE // flags
         );
         INVALIDATE_ADDR(FirstPagesLower[Pg]);
-        WriteConsole("identity map %p\n", FirstPagesLower[Pg]);
     }
     
     // prolly not good to have this x86 stuff here, TODO move out
@@ -101,12 +107,15 @@ VOID SetupTrampoline(PTR DirectMapOffset) {
     APcr3 = FirstPagesLower[1];
     FarjumpTrampoline32 = (U32) RELOCATE(EnterLongMode);
     FarjumpTrampoline64 = (U32) RELOCATE(LongModeStub);
+    APCEntry = (PTR) APEntry;
 
     CopyBuffer((VOID*)FirstPagesLower[0], APTrampolineStart, PAGE_SIZE);
     CopyBuffer((VOID*)FirstPagesLower[1], (VOID*)GPML4, PAGE_SIZE);
 }
 
+extern PTR *APStackList; // for asm to access, only written to by StartAPs
 VOID StartAPs(PTR DirectMapOffset, MADT *MADTBlock, ShillProcessorsList *Processors) {
+    // map in the madt
     MapPage(
             (USIZE*)GPML4,                              // page tree target
             MADTBlock->LocalAPICAddr + DirectMapOffset, // virt addr
@@ -115,11 +124,23 @@ VOID StartAPs(PTR DirectMapOffset, MADT *MADTBlock, ShillProcessorsList *Process
     );
     INVALIDATE_ADDR(MADTBlock->LocalAPICAddr + DirectMapOffset);
 
+    // we also need to create a list of stack addresses for each AP
+    USIZE StackListNumPages = ALIGN_UP(Processors->NumProcessors * sizeof(PTR),
+                                  PAGE_SIZE) / PAGE_SIZE;
+    APStackList = (PTR*) AllocateBackedPages(
+            StackListNumPages,
+            VALLOC_ZONE_STACK
+    );
+    INVALIDATE_RANGE(APStackList, StackListNumPages);
+
     SetupTrampoline(DirectMapOffset);
 
+    USIZE Idx = 0;
     for (USIZE Cpu = 0; Cpu < Processors->NumProcessors; Cpu++) {
         USIZE Id = Processors->Processors[Cpu].ID;
         if (!Id) continue; // not bsp
+        APStackList[Idx] = AllocateBackedPages(KERNEL_STACK_PAGES, VALLOC_ZONE_STACK);
         ArchStartAP(MADTBlock->LocalAPICAddr + DirectMapOffset, Id);
+        Idx++;
     }
 }

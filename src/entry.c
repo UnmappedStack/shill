@@ -117,6 +117,13 @@ VOID ReclaimBootloaderMemory(ShillMemoryMap *MemoryMap) {
     }
 }
 
+/* Entry point for APs after entering long mode. Simply spins in a tight loop
+ * atomically checking if the kernel writes a new entry point for us to go to */
+NORETURN VOID APEntry(USIZE SoftwareId) {
+    WriteConsole("Hello from CPU%zu!\n", SoftwareId);
+    HaltDevice();
+}
+
 /* Entry point for the prekernel.
  *
  * arg1 and arg2 parameters depend on the bootloader protocol and will be

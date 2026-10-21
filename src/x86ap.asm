@@ -17,6 +17,8 @@ GLOBAL LongModeStub
 GLOBAL APgdtr
 GLOBAL APgdt
 GLOBAL APcr3
+GLOBAL APStackList
+GLOBAL APCEntry 
 
 ; if ESI has bit X clear, sets bit Y of EAX
 %macro CONFIG 2
@@ -87,7 +89,18 @@ EnterLongMode:
 
 [BITS 64]
 LongModeStub:
-    JMP $
+    ; bump ApIdBump by 1 and get the previous value, giving us a unique
+    ; software ID for this processor
+    MOV RAX, ApIdBump
+    XOR RDI, RDI
+    LOCK XADD DWORD [RAX + 0], EDI
+    ; get the new stack given this id :3
+    MOV RSI, [APStackList]
+    MOV RAX, [RDI * 8 + RSI]
+    MOV RSP, RAX
+    ; software id will be passed as param
+    INC RDI
+    JMP [APCEntry]
 
 APgdt:
     DQ 0x0000000000000000  ; null entry
@@ -97,17 +110,20 @@ APgdt:
 APgdtr:
     DW APgdtr-APgdt-1 ; size, bytes-1
     DD 0              ; address, will be written to later from c on the bsp
-
 FarjumpTrampoline32:
     DD 0 ; segment/addr (written to by c on the bsp)
     DW 8 ; offset
-
 FarjumpTrampoline64:
     DD 0  ; segment/addr (written to by c on the bsp)
     DW 16 ; offset
-
 APcr3:
     DD 0 ; written to on the bsp
+ApIdBump:
+    DD 0
+APStackList:
+    DQ 0 ; ptr from c
+APCEntry:
+    DQ 0 ; fn ptr from c
 
 APTrampolineEnd:
 TIMES 4096-($-APTrampolineStart) DB 0
