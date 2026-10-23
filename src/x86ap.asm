@@ -92,7 +92,7 @@ LongModeStub:
     ; bump ApIdBump by 1 and get the previous value, giving us a unique
     ; software ID for this processor
     MOV RAX, ApIdBump
-    XOR RDI, RDI
+    MOV EDI, 1
     LOCK XADD DWORD [RAX + 0], EDI
     ; get the new stack given this id :3
     MOV RSI, [APStackList]

@@ -7,6 +7,7 @@
 #pragma once
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdatomic.h>
 #include <stdint.h>
 
 typedef uint8_t  U8;
@@ -37,3 +38,5 @@ typedef int INT;
 typedef bool BOOL;
 #define TRUE true
 #define FALSE false
+
+typedef atomic_flag Spinlock;

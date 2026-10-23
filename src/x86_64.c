@@ -80,39 +80,50 @@ VOID WriteSerial(CSTRING Str) {
     }
 }
 
+#define LAPIC_ID_REGISTER                0x020
+#define LAPIC_INTERRUPT_COMMAND_REGISTER 0x300
 VOID WriteLapic(PTR LapicAddr, USIZE RegOffset, U32 Val) {
     U32 volatile *Addr =
         (U32 volatile *)(((USIZE)LapicAddr) + RegOffset);
     *Addr = Val;
 }
 
-#define LAPIC_INTERRUPT_COMMAND_REGISTER 0x300
+U32 ReadLapic(PTR LapicAddr, USIZE RegOffset) {
+    U32 volatile *LapicRegAddr =
+        (U32 volatile *)(((U64)LapicAddr) + RegOffset);
+    return (U32) *LapicRegAddr;
+}
+
+PTR GLapicAddr = 0;
+USIZE HalCpuHardwareId(VOID) {
+    ASSERT(GLapicAddr);
+    return ReadLapic(GLapicAddr, LAPIC_ID_REGISTER) >> 24;
+}
+
 VOID SendIPI(PTR LapicAddr, U8 Vector, U32 Flags, U8 Dest) {
     WriteLapic(LapicAddr, LAPIC_INTERRUPT_COMMAND_REGISTER + 0x10, (USIZE)Dest << IPI_DEST_SHIFT);
     WriteLapic(LapicAddr, LAPIC_INTERRUPT_COMMAND_REGISTER, Vector | Flags);
 }
 
 VOID ArchStartAP(PTR LapicAddr, USIZE ApicId) {
-    WriteConsole("hal:x86_64: Sending INIT IPI to CPU%zu ", ApicId);
+    GLapicAddr = LapicAddr; // this can be changed to not keep repeating for each ap (TODO)
+    WriteConsole("hal:x86_64: Sending INIT IPI & SIPI to CPU%zu\n", ApicId);
     SendIPI(
             LapicAddr,
             0, // init ipis must have vector 0
             IPI_DELIVERY_INIT, // flags
             ApicId
     );
-    WriteConsole("(OK)\n");
 
     // so fucking dumb, TODO use an actual timer
     for (USIZE I = 0; I < 10000000; I++) {
         __builtin_ia32_pause();
     }
    
-    WriteConsole("hal:x86_64: Sending SIPI to CPU%zu ", ApicId);
     SendIPI(
             LapicAddr,
             FirstPagesLower[0] / PAGE_SIZE, // page of trampoline
             IPI_DELIVERY_STARTUP,       // flags
             ApicId
     );
-    WriteConsole("(OK)\n");
 }

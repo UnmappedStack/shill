@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <stdatomic.h>
 #include <util.h>
 
 #define ASM __asm__ volatile
@@ -50,3 +51,14 @@
 #define IPI_LEVEL_ASSERT                    0b1   << 14
 #define IPI_TRIGGER_EDGE                    0b0   << 15
 #define IPI_TRIGGER_LEVEL                   0b1   << 15
+
+USIZE HalCpuHardwareId(VOID);
+
+// I think disabling interrupts isnt necessary
+// here cos in the prekernel theres no preemption
+#define AcquireSpinlock(Lock) \
+    while (atomic_flag_test_and_set(Lock)) { \
+        __builtin_ia32_pause(); \
+    }
+#define ReleaseSpinlock(Lock) \
+    atomic_flag_clear(Lock);

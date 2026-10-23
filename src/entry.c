@@ -28,6 +28,8 @@ __attribute__((used, section(".limine_requests")))
 STATIC volatile U64 LimineBaseRevision[] = LIMINE_BASE_REVISION(6);
 
 PTR GPML4 = 0;
+ShillProcessorsList *GProcessors = NULLPTR;
+Spinlock LogLock = {0};
 
 typedef enum {
     BOOT_PROTOCOL_HYPER,
@@ -120,7 +122,17 @@ VOID ReclaimBootloaderMemory(ShillMemoryMap *MemoryMap) {
 /* Entry point for APs after entering long mode. Simply spins in a tight loop
  * atomically checking if the kernel writes a new entry point for us to go to */
 NORETURN VOID APEntry(USIZE SoftwareId) {
-    WriteConsole("Hello from CPU%zu!\n", SoftwareId);
+    ASSERT(GProcessors);
+
+    USIZE HardwareId = HalCpuHardwareId();
+    for (USIZE Cpu = 0; Cpu < GProcessors->NumProcessors; Cpu++) {
+        if (HardwareId != GProcessors->Processors[Cpu].ID) continue;
+        WriteConsole("Hello from CPU%zu! (hw:%zu, struct:%p)\n", SoftwareId, HardwareId, &GProcessors->Processors[Cpu]);
+        HaltDevice();
+    }
+
+    WriteConsole("in AP that was not detected, wtf?? (continuing on other "
+                 "processors. TODO: maybe handle this more gracefully)\n");
     HaltDevice();
 }
 
@@ -165,6 +177,7 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     WriteConsole("Find [X|R]SDT: %p\n", SDTBlock);
     WriteConsole("Find MADT: %p\n", MADTBlock);
     BootInfo.Processors = FindAPs(MADTBlock);
+    GProcessors = BootInfo.Processors;
     StartAPs(BootInfo.DirectMapOffset, MADTBlock, BootInfo.Processors);
 
     // some other boot info needs to be abstracted only after the new page tree is set up...

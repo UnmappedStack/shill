@@ -5,7 +5,9 @@
  * notice)
  */
 
-#include <types.h>
+#pragma once
+
+#include <hal.h>
 #define NANOPRINTF_USE_FLOAT_FORMAT_SPECIFIERS 0
 #define NANOPRINTF_USE_FIELD_WIDTH_FORMAT_SPECIFIERS 1
 #define NANOPRINTF_USE_PRECISION_FORMAT_SPECIFIERS 0
@@ -2390,8 +2392,13 @@ int npf_snprintf_(char * NPF_RESTRICT buffer,
   OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 */
 
-
 // Some Shill (non nanoprintf) stuff that needs to be exposed
 VOID PutChar(INT C, VOID *P);
+extern Spinlock LogLock;
 #define WriteConsole(Format, ...) \
-        npf_pprintf(&PutChar, NULL, Format, ##__VA_ARGS__);
+    do { \
+        /* I doubt a log ring is necessary just in the prekernel tbh */ \
+        AcquireSpinlock(&LogLock); \
+        npf_pprintf(&PutChar, NULL, Format, ##__VA_ARGS__); \
+        ReleaseSpinlock(&LogLock); \
+    } while(0)
