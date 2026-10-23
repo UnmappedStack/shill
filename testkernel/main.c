@@ -10,7 +10,19 @@
 #include <shill.h>
 
 #include <stdint.h>
+#include <stdatomic.h>
 #include <stddef.h>
+
+typedef atomic_flag Spinlock;
+#define SPINLOCK_INIT ATOMIC_FLAG_INIT
+// interrupts not being disabled is fine in this test,
+// interrupts aren't on anyways
+#define AcquireSpinlock(Lock) \
+    while (atomic_flag_test_and_set(Lock)) { \
+        __builtin_ia32_pause(); \
+    }
+#define ReleaseSpinlock(Lock) \
+    atomic_flag_clear(Lock);
 
 uint8_t *fb_addr;
 uint32_t fb_pitch;
@@ -53,13 +65,16 @@ static void serial_putc(char c) {
     outb(COM1, c);
 }
 
+Spinlock SerialLock = SPINLOCK_INIT;
 static void serial_puts(const char *s) {
+    AcquireSpinlock(&SerialLock);
     while (*s) {
         if (*s == '\n')
             serial_putc('\r');
 
         serial_putc(*s++);
     }
+    ReleaseSpinlock(&SerialLock);
 }
 
 void *memcpy(void *dest, const void *src, size_t n) {
@@ -117,6 +132,11 @@ static void hcf(void) {
         __asm__ volatile ("cli; hlt");
 }
 
+void ap_entry(void) {
+    serial_puts("hello from AP\n");
+    hcf();
+}
+
 void _start(ShillBootInfoBlock boot_info, uint32_t magic) {
     serial_init();
 
@@ -165,6 +185,10 @@ void _start(ShillBootInfoBlock boot_info, uint32_t magic) {
         serial_puts(boot_info.Modules->Modules[i].Name);
         serial_puts("' of contents:\n   ");
         serial_puts((char*)boot_info.Modules->Modules[i].Address);
+    }
+
+    for (int i = 0; i < boot_info.Processors->NumProcessors; i++) {
+        boot_info.Processors->Processors[i].Entry = &ap_entry;
     }
 
     hcf();

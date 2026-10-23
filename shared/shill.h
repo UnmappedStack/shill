@@ -84,6 +84,7 @@ typedef struct {
 typedef struct {
     // In the case of x86, this'd be the APIC ID
     size_t ID;
+    void *Entry;
 } ShillProcessor;
 
 typedef struct {

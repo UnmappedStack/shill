@@ -29,7 +29,7 @@ STATIC volatile U64 LimineBaseRevision[] = LIMINE_BASE_REVISION(6);
 
 PTR GPML4 = 0;
 ShillProcessorsList *GProcessors = NULLPTR;
-Spinlock LogLock = {0};
+Spinlock LogLock = SPINLOCK_INIT;
 
 typedef enum {
     BOOT_PROTOCOL_HYPER,
@@ -127,7 +127,13 @@ NORETURN VOID APEntry(USIZE SoftwareId) {
     USIZE HardwareId = HalCpuHardwareId();
     for (USIZE Cpu = 0; Cpu < GProcessors->NumProcessors; Cpu++) {
         if (HardwareId != GProcessors->Processors[Cpu].ID) continue;
-        WriteConsole("Hello from CPU%zu! (hw:%zu, struct:%p)\n", SoftwareId, HardwareId, &GProcessors->Processors[Cpu]);
+        WriteConsole("Hello from CPU%zu! (hw:%zu, struct:%p)\n",
+                SoftwareId, HardwareId, &GProcessors->Processors[Cpu]);
+
+        while (!__atomic_load_n((PTR*)&GProcessors->Processors[Cpu].Entry, __ATOMIC_RELAXED));
+        ((VOID (*)(VOID)) GProcessors->Processors[Cpu].Entry)();
+
+        WriteConsole("kernel skill issue lol (ap)");
         HaltDevice();
     }
 
@@ -201,5 +207,7 @@ VOID BootEntry(PTR Arg1, PTR Arg2) {
     WriteConsole("Kernel image loaded & everything ready, entering kernel at entry point %p...\n\n", KernelEntry);
 
     SWITCH_STACK(NewStackTop);
-    ((void (*)(ShillBootInfoBlock BootInfo, U32 Magic)) KernelEntry)(BootInfo, SHILL_MAGIC);
+    ((VOID (*)(ShillBootInfoBlock BootInfo, U32 Magic)) KernelEntry)(BootInfo, SHILL_MAGIC);
+    WriteConsole("kernel skill issue lol (bp)");
+    HaltDevice();
 }

@@ -62,3 +62,4 @@ USIZE HalCpuHardwareId(VOID);
     }
 #define ReleaseSpinlock(Lock) \
     atomic_flag_clear(Lock);
+#define SPINLOCK_INIT ATOMIC_FLAG_INIT
