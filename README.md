@@ -1,4 +1,6 @@
 # Shill
+## This repo is defunct, please see the new location on Codeberg [here](https://codeberg.org/song-os/shill)
+
 
 A prekernel with the goal of supporting the following protocols:
 
