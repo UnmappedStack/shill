@@ -2,12 +2,12 @@
 
 A prekernel with the goal of supporting the following protocols:
 
- - [Ultra](https://github.com/UltraOS/UltraProtocol) (primarily through the Hyper bootloader)
- - [Limine](https://github.com/Limine-Bootloader/limine-protocol) (primarily through the Limine bootloader)
- - [Multiboot 1](https://www.gnu.org/software/grub/manual/multiboot/multiboot.html) (and maybe 2? I mostly only want MB1 for qemu's `-kernel`)
- - Maybe eventually EFI stub support directly, not sure if that's worth it though
+ - [X] [Ultra](https://github.com/UltraOS/UltraProtocol) (primarily through the Hyper bootloader)
+ - [X] [Limine](https://github.com/Limine-Bootloader/limine-protocol) (primarily through the Limine bootloader)
+ - [ ] [Multiboot 1](https://www.gnu.org/software/grub/manual/multiboot/multiboot.html) (and maybe 2? I mostly only want MB1 for qemu's `-kernel`)
+ - [ ] Maybe eventually EFI stub support directly, not sure if that's worth it though
 
-I plan to use Shill for Trickster, the kernel of my hobby OS TacOS. By the time Shill is in a usable state, it should:
+I plan to use Shill for Trickster, my hobby kernel. By the time Shill is in a usable state, it should:
 
  - Support full abstraction of all protocols it supports
  - Fill in the gaps itself for protocols which do not support features that other protocols do
