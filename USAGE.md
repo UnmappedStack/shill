@@ -54,6 +54,7 @@ typedef struct {
     ShillFramebuffersList *Framebuffers;
     ShillModulesList *Modules;
     uintptr_t PFNDB;
+    ShillProcessorsList *Processors;
 } ShillBootInfoBlock;
 ```
 
@@ -186,3 +187,22 @@ The `PFNDB` entry of the boot info block will be the virtual address of the PFND
 All PFNDB entries will be one `uintptr_t` in size. This is done because it enforces a memdesc-style PFNDB scheme, in which each entry is just a pointer to the actual entry elsewhere in memory, meaning just because some entries need extra fields, not every single entry is forced to waste that space too.
 
 The PFNDB will be stored physically in prekernel reclaimable memory and will be virtually between the end of the HHDM region and the start of the kernel binary.
+
+### Processors
+
+Available APs will always be started by the prekernel and will enter long mode with the same page tree as the BSP. They currently are not passed any arguments though that will probably change. You can check the available processors with the `Processors` field of the boot info block:
+
+```C
+typedef struct {
+    // In the case of x86, this'd be the APIC ID
+    size_t ID;
+    void *Entry;
+} ShillProcessor;
+
+typedef struct {
+    size_t NumProcessors;
+    ShillProcessor Processors[];
+} ShillProcessorsList;
+```
+
+To start running kernel code from an AP, just atomically write to the processors `Entry` field with the start address and it will jump there. Each processor will start with a separate stack of course.
